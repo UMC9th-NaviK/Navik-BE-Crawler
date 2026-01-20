@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: ${SPRING_APP_NAME:navik}
+  profiles:
+    active: ${SPRING_ACTIVE_PROFILE:dev}

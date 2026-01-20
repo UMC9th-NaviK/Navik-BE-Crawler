@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4.1-mini
+          temperature: 0.0
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+naver:
+  ocr:
+    url: ${NAVER_OCR_URL}
+    secretKey: ${NAVER_OCR_SECRET_KEY}
