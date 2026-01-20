@@ -54,6 +54,9 @@ dependencies {
 
 	// WebClient
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Apache Commons Image Library
+	implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
 }
 
 dependencyManagement {
