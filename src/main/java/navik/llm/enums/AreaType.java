@@ -1,4 +1,4 @@
-package navik.ai.enums;
+package navik.llm.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

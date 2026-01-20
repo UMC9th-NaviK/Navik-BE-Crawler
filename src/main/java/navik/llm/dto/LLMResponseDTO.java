@@ -1,4 +1,4 @@
-package navik.crawler.ai.dto;
+package navik.llm.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -6,14 +6,14 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import navik.domain.job.enums.JobType;
-import navik.domain.recruitment.enums.AreaType;
-import navik.domain.recruitment.enums.CompanySize;
-import navik.domain.recruitment.enums.EducationType;
-import navik.domain.recruitment.enums.EmploymentType;
-import navik.domain.recruitment.enums.ExperienceType;
-import navik.domain.recruitment.enums.IndustryType;
-import navik.domain.recruitment.enums.MajorType;
+import navik.llm.enums.AreaType;
+import navik.llm.enums.CompanySize;
+import navik.llm.enums.EducationLevel;
+import navik.llm.enums.EmploymentType;
+import navik.llm.enums.ExperienceType;
+import navik.llm.enums.IndustryType;
+import navik.llm.enums.JobType;
+import navik.llm.enums.MajorType;
 
 /**
  * Structured Output 관리
@@ -44,7 +44,7 @@ public class LLMResponseDTO {
 			private JobType jobType;
 			private EmploymentType employmentType;
 			private ExperienceType experienceType;
-			private EducationType educationType;
+			private EducationLevel educationLevel;
 			private AreaType areaType;
 			private String detailAddress;
 			private MajorType majorType;

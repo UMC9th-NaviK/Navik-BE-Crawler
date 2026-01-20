@@ -1,4 +1,4 @@
-package navik.crawler.ai.client;
+package navik.llm.client;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -7,7 +7,7 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import navik.crawler.ai.dto.LLMResponseDTO;
+import navik.llm.dto.LLMResponseDTO;
 
 @Service
 @RequiredArgsConstructor
