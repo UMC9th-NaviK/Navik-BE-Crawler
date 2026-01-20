@@ -1,0 +1,22 @@
+name: Refactor Template
+description: 리팩토링할 때 쓰는 템플릿
+title: "[Refactor] "
+labels: ["♻️ refactor"]
+
+body:
+  - type: input
+    id: refactor-content
+    attributes:
+      label: "📝 어떤 부분을 리팩토링하나요?"
+      description: 리팩토링할 작업에 대한 설명을 적어주세요.
+      placeholder: ex. 게시글 조회 함수 리팩토링
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: "👀 자세한 내용 (Optional)"
+      description: 설명이 부족하다면 더 자세한 내용을 적어주세요.
+      placeholder: ex. 게시글 조회 부분 private 함수로 분리
+    validations:
+      required: false
