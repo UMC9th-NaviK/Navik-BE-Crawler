@@ -12,16 +12,13 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.domain.crawler.constants.JobKoreaConstant;
-import navik.domain.crawler.dto.RecruitmentPost;
-import navik.domain.crawler.enums.JobCode;
-import navik.domain.crawler.factory.WebDriverFactory;
-import navik.domain.crawler.util.CrawlerDataExtractor;
-import navik.domain.crawler.util.CrawlerSearchHelper;
-import navik.domain.crawler.util.CrawlerValidator;
-import navik.domain.recruitment.service.RecruitmentCommandService;
-import navik.global.ai.dto.LLMResponseDTO;
-import navik.global.ai.service.LLMService;
+import navik.crawler.constants.JobKoreaConstant;
+import navik.crawler.dto.RecruitmentPost;
+import navik.crawler.enums.JobCode;
+import navik.crawler.factory.WebDriverFactory;
+import navik.crawler.util.CrawlerDataExtractor;
+import navik.crawler.util.CrawlerSearchHelper;
+import navik.crawler.util.CrawlerValidator;
 
 @Slf4j
 @Service

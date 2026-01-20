@@ -2,7 +2,7 @@ package navik.crawler.ocr.constant;
 
 import java.util.List;
 
-public class NaverOcrConstant {
+public class NaverOCRConstant {
 	public static final int MAX_PIXEL = 1960;
 	public static final int MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 	public static final String RECOMMENDED_VERSION = "V2";

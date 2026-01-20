@@ -36,7 +36,7 @@ public class CrawlerDataExtractor {
 	 * 결제 문제로 인해 네이버로 임시 대체,
 	 * 차후 구글 OCR과 성능/비용 비교 및 확정 필요
 	 */
-	@Qualifier("naverOcrService")
+	@Qualifier("naverOCRClient")
 	private final OcrService ocrService;
 	private final JsoupFactory jsoupFactory;
 
