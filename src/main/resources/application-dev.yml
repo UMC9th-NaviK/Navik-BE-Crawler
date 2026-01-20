@@ -9,7 +9,7 @@ spring:
       port: ${REDIS_PORT:6379}
       stream:
         keys:
-          crawl: ${STREAM_KEY}
+          crawl: ${CRAWL_STREAM_KEY}
 
   ai:
     openai:
