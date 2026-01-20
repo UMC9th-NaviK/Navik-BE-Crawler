@@ -1,4 +1,4 @@
-package navik.crawler.ocr.dto;
+package navik.ocr.dto;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public class NaverOCRRequestDTO {
 
 	@Getter
 	@Builder
-	public static class OcrRequest {
+	public static class Request {
 		private String version;   // V2 엔진 권장
 		private String requestId;    // 요청 식별을 위한 UUID
 		private long timestamp;    // 요청 시각

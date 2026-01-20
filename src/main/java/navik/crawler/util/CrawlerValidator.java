@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import navik.domain.crawler.constants.CrawlerConstant;
-import navik.domain.crawler.constants.JobKoreaConstant;
+import navik.crawler.constants.CrawlerConstant;
+import navik.crawler.constants.JobKoreaConstant;
 
 @Component
 public class CrawlerValidator {

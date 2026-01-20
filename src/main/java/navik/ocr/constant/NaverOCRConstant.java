@@ -1,4 +1,4 @@
-package navik.crawler.ocr.constant;
+package navik.ocr.constant;
 
 import java.util.List;
 

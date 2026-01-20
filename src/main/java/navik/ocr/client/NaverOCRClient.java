@@ -1,4 +1,4 @@
-package navik.crawler.ocr.client;
+package navik.ocr.client;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +12,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.crawler.ocr.dto.ImageMetadataDTO;
-import navik.crawler.ocr.util.ImageHelper;
+import navik.ocr.constant.NaverOCRConstant;
+import navik.ocr.dto.ImageMetadataDTO;
+import navik.ocr.dto.NaverOCRRequestDTO;
+import navik.ocr.dto.NaverOCRResponseDTO;
+import navik.ocr.util.ImageHelper;
 
 /**
  * 구글 OCR 쓰려고 했으나, 결제 인증 문제로 인해 네이버 OCR로 임시 대체하였습니다.
@@ -76,36 +79,36 @@ public class NaverOCRClient implements OCRClient {
 	private String requestApi(String imageUrl, String extension) {
 
 		// 1. inner DTO 생성
-		NaverOcrRequestDTO.Image image = NaverOcrRequestDTO.Image.builder()
+		NaverOCRRequestDTO.Image image = NaverOCRRequestDTO.Image.builder()
 			.format(extension)
 			.name("navik-image")
 			.url(imageUrl)
 			.build();
 
 		// 2. inner DTO 포함, 최종 request body 생성
-		NaverOcrRequestDTO.OcrRequest requestBody = NaverOcrRequestDTO.OcrRequest.builder()
-			.version(NaverOcrConstant.RECOMMENDED_VERSION)
+		NaverOCRRequestDTO.Request requestBody = NaverOCRRequestDTO.Request.builder()
+			.version(NaverOCRConstant.RECOMMENDED_VERSION)
 			.requestId(UUID.randomUUID().toString())
 			.timestamp(System.currentTimeMillis())
-			.lang(NaverOcrConstant.LANG_KOREAN)
+			.lang(NaverOCRConstant.LANG_KOREAN)
 			.images(List.of(image))
 			.build();
 
 		// 3. Naver OCR API 호출
-		NaverOcrResponseDTO.OcrResponse responseBody = webClient.post()
+		NaverOCRResponseDTO.Response responseBody = webClient.post()
 			.uri(apiUrl)
 			.header("X-OCR-SECRET", secretKey)
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(BodyInserters.fromValue(requestBody))
 			.retrieve()
-			.bodyToMono(NaverOcrResponseDTO.OcrResponse.class)
+			.bodyToMono(NaverOCRResponseDTO.Response.class)
 			.block();
 
 		// 4. 텍스트 추출
 		String result = responseBody.getImages().stream()
 			.filter(img -> "SUCCESS".equals(img.getInferResult()))
 			.flatMap(img -> img.getFields().stream())
-			.map(NaverOcrResponseDTO.Field::getInferText)
+			.map(NaverOCRResponseDTO.Field::getInferText)
 			.collect(Collectors.joining(" "));
 
 		// 5. OCR 결과 반환
@@ -113,14 +116,14 @@ public class NaverOCRClient implements OCRClient {
 	}
 
 	private boolean isSupportedExtension(String extension) {
-		return !extension.isBlank() && NaverOcrConstant.SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
+		return !extension.isBlank() && NaverOCRConstant.SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
 	}
 
 	private boolean isSupportedFileSize(long size) {
-		return size > 0 && size <= NaverOcrConstant.MAX_FILE_SIZE;
+		return size > 0 && size <= NaverOCRConstant.MAX_FILE_SIZE;
 	}
 
 	private boolean isTrashImage(int width, int height) {
-		return width <= NaverOcrConstant.TRASH_PIXEL_SIZE || height <= NaverOcrConstant.TRASH_PIXEL_SIZE;
+		return width <= NaverOCRConstant.TRASH_PIXEL_SIZE || height <= NaverOCRConstant.TRASH_PIXEL_SIZE;
 	}
 }

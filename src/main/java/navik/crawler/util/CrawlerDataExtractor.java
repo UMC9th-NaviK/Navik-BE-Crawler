@@ -15,14 +15,13 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.domain.crawler.constants.JobKoreaConstant;
-import navik.domain.crawler.factory.JsoupFactory;
-import navik.global.ocr.service.OcrService;
+import navik.crawler.constants.JobKoreaConstant;
+import navik.crawler.factory.JsoupFactory;
+import navik.ocr.client.OCRClient;
 
 /**
  * 채용 공고 상세 페이지의 데이터 추출을 담당하는 메서드입니다.
@@ -33,18 +32,13 @@ import navik.global.ocr.service.OcrService;
 public class CrawlerDataExtractor {
 
 	/**
-	 * 결제 문제로 인해 네이버로 임시 대체,
-	 * 차후 구글 OCR과 성능/비용 비교 및 확정 필요
+	 * 구글 결제 문제로 인해 네이버 OCR 사용임시 대체,
 	 */
-	@Qualifier("naverOCRClient")
-	private final OcrService ocrService;
+	private final OCRClient ocrClient;
 	private final JsoupFactory jsoupFactory;
 
 	/**
 	 * 현재 화면의 URL를 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractCurrentUrl(WebDriverWait wait) {
 		return wait.until(WebDriver::getCurrentUrl);
@@ -52,9 +46,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * 채용 공고의 고유 식별 번호를 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractPostId(WebDriverWait wait) {
 		String url = extractCurrentUrl(wait);
@@ -68,9 +59,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * 채용 공고의 제목을 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractTitle(WebDriverWait wait) {
 		WebElement titleElement = wait.until(ExpectedConditions.presenceOfElementLocated(
@@ -80,9 +68,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * 채용 공고의 회사명을 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractCompanyName(WebDriverWait wait) {
 		WebElement companyNameElement = wait.until(ExpectedConditions.presenceOfElementLocated(
@@ -93,9 +78,6 @@ public class CrawlerDataExtractor {
 	/**
 	 * 채용 공고의 회사 로고를 추출합니다.
 	 * '회사 내용 상세보기' 정적 페이지를 얻어 Jsoup으로 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractCompanyLogo(WebDriverWait wait) {
 		WebElement companyMoreElement = wait.until(ExpectedConditions.presenceOfElementLocated(
@@ -111,9 +93,6 @@ public class CrawlerDataExtractor {
 	 * 예시)
 	 * 		경력: 2년이상
 	 * 		학력: 무관
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractQualification(WebDriverWait wait) {
 
@@ -147,9 +126,6 @@ public class CrawlerDataExtractor {
 	 * 		기업구분: 중소기업 (비상장)
 	 * 		산업(업종): 전자상거래 소매 중개업
 	 * 		위치: 서울 강남구 논현로 ...
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractCompanyInfo(WebDriverWait wait) {
 
@@ -181,9 +157,6 @@ public class CrawlerDataExtractor {
 	 * 채용 공고의 시작 시간과 마감 시간을 추출합니다.
 	 * 예시)
 	 * 		남은기간 26일 04:01:43, 시작일 2026.01.05(월) 마감일 2026.02.04(수)
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractTimeInfo(WebDriverWait wait) {
 		String countdownText = "알수없음";
@@ -203,9 +176,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * 채용 공고의 모집 요강을 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractOutline(WebDriverWait wait) {
 		WebElement outlineElement = wait.until(ExpectedConditions.presenceOfElementLocated(
@@ -222,9 +192,6 @@ public class CrawlerDataExtractor {
 	 * 	 1. HTML 테이블 태그 기반
 	 * 	 2. 이미지 기반
 	 * 위 두 가지 경우의 수를 모두 처리합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	public String extractRecruitmentDetail(WebDriverWait wait) {
 		String recruitmentDetailUrl = JobKoreaConstant.BASE_URL + extractIframeUrl(wait);
@@ -237,9 +204,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * iframe으로부터 정적 공고 페이지의 url를 추출합니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	private String extractIframeUrl(WebDriverWait wait) {
 		WebElement detailIframe = wait.until(ExpectedConditions.presenceOfElementLocated(
@@ -248,6 +212,9 @@ public class CrawlerDataExtractor {
 		return detailIframe.getDomAttribute("src");
 	}
 
+	/**
+	 * 공고 페이지의 모집 정보를 HTML Table 태그로 추출합니다.
+	 */
 	private String extractRecruitmentTable(Document document) {
 
 		Element tableElement = document.selectFirst("td.detailTable");
@@ -285,7 +252,7 @@ public class CrawlerDataExtractor {
 		// 2. 필터링된 이미지들에 대해 OCR 호출
 		StringBuilder result = new StringBuilder();
 		for (String imgUrl : imageSet) {
-			String imageText = ocrService.extractFromImageUrl(imgUrl);
+			String imageText = ocrClient.extractFromImageUrl(imgUrl);
 			if (!imageText.isBlank()) {
 				result.append(imageText).append("\n\n");
 			}
@@ -297,9 +264,6 @@ public class CrawlerDataExtractor {
 
 	/**
 	 * 이미지 url에 'https:'가 누락된 경우, 추가합니다.
-	 *
-	 * @param url
-	 * @return
 	 */
 	private String applyHttpsPrefix(String url) {
 		if (url.startsWith("//"))

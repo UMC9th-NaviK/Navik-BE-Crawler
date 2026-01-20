@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.domain.crawler.service.CrawlerService;
+import navik.crawler.service.CrawlerService;
 
 @Slf4j
 @RestController
 @RequestMapping("/v1/crawler")
 @RequiredArgsConstructor
-public class CrawlerController implements CrawlerControllerDocs {
+public class CrawlerController {
 
 	private final CrawlerService crawlerService;
 

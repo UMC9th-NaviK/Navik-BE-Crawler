@@ -1,4 +1,4 @@
-package navik.crawler.ocr.dto;
+package navik.ocr.dto;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public class NaverOCRResponseDTO {
 
 	@Getter
 	@NoArgsConstructor
-	public static class OcrResponse {
+	public static class Response {
 		private String version;
 		private String requestId;
 		private long timestamp;

@@ -1,4 +1,4 @@
-package navik.crawler.ocr.dto;
+package navik.ocr.dto;
 
 import lombok.Builder;
 import lombok.Getter;

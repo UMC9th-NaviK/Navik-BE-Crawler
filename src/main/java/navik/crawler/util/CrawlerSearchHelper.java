@@ -6,7 +6,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
-import navik.domain.crawler.enums.JobCode;
+import navik.crawler.enums.JobCode;
 
 /**
  * 크롤러의 검색 작업을 담당하는 클래스입니다.
@@ -16,9 +16,6 @@ public class CrawlerSearchHelper {
 
 	/**
 	 * 검색 전 직무 필터를 적용하는 메서드입니다.
-	 *
-	 * @param wait
-	 * @param jobCode
 	 */
 	public void applyJobFilter(WebDriverWait wait, JobCode jobCode) {
 		String step1 = jobCode.getJobCode();
@@ -35,9 +32,6 @@ public class CrawlerSearchHelper {
 
 	/**
 	 * 필터 적용 이후 검색을 실행하는 메서드입니다.
-	 *
-	 * @param wait
-	 * @throws Exception
 	 */
 	public void search(WebDriverWait wait) {
 		WebElement searchButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("dev-btn-search")));
@@ -51,8 +45,6 @@ public class CrawlerSearchHelper {
 
 	/**
 	 * 검색 이후 '최신 업데이트 순'으로 정렬하는 메서드입니다.
-	 *
-	 * @param wait
 	 */
 	public void applySort(WebDriverWait wait) {
 		WebElement sortElement = wait.until(ExpectedConditions.elementToBeClickable(
@@ -63,8 +55,6 @@ public class CrawlerSearchHelper {
 
 	/**
 	 * 검색 이후 '한 페이지에 보이는 공고 개수'를 설정하는 메서드입니다.
-	 *
-	 * @param wait
 	 */
 	public void applyQuantity(WebDriverWait wait) {
 		WebElement quantityElement = wait.until(ExpectedConditions.elementToBeClickable(

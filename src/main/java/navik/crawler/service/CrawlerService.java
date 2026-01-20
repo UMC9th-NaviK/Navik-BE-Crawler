@@ -19,6 +19,8 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
+import navik.llm.client.LLMClient;
+import navik.llm.dto.LLMResponseDTO;
 
 @Slf4j
 @Service
@@ -29,8 +31,7 @@ public class CrawlerService {
 	private final CrawlerSearchHelper crawlerSearchHelper;
 	private final CrawlerDataExtractor crawlerDataExtractor;
 	private final CrawlerValidator crawlerValidator;
-	private final LLMService llmService;
-	private final RecruitmentCommandService recruitmentCommandService;
+	private final LLMClient llmClient;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -57,9 +58,6 @@ public class CrawlerService {
 
 	/**
 	 * 필터를 적용하여 직무 별 검색을 수행합니다.
-	 *
-	 * @param wait
-	 * @param jobCode
 	 */
 	private void search(WebDriverWait wait, JobCode jobCode) {
 		crawlerSearchHelper.applyJobFilter(wait, jobCode);    // 필터 적용
@@ -70,10 +68,6 @@ public class CrawlerService {
 
 	/**
 	 * 검색 이후 pages만큼 페이지를 처리합니다.
-	 *
-	 * @param driver
-	 * @param wait
-	 * @param pages
 	 */
 	private void processPages(WebDriver driver, WebDriverWait wait, int pages) {
 
@@ -134,9 +128,6 @@ public class CrawlerService {
 
 	/**
 	 * 채용 공고에 대한 데이터 추출, 변환, 적재 작업을 수행하는 메서드입니다.
-	 *
-	 * @param wait
-	 * @return
 	 */
 	private void processETL(WebDriverWait wait) {
 
@@ -170,10 +161,10 @@ public class CrawlerService {
 
 		// 4. LLM 호출
 		String html = recruitmentPost.toHtmlString();
-		LLMResponseDTO.Recruitment result = llmService.getRecruitment(html);
+		LLMResponseDTO.Recruitment result = llmClient.getRecruitment(html);
 		log.info("[LLM 채용 공고 결과] {}", result);
 
 		// 5. DB 적재
-		recruitmentCommandService.createRecruitment(result);
+		// recruitmentCommandService.createRecruitment(result);
 	}
 }

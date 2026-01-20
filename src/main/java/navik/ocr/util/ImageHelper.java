@@ -1,4 +1,4 @@
-package navik.crawler.ocr.util;
+package navik.ocr.util;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -9,7 +9,7 @@ import org.apache.commons.imaging.Imaging;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import navik.crawler.ocr.dto.ImageMetadataDTO;
+import navik.ocr.dto.ImageMetadataDTO;
 
 @Slf4j
 @Component
