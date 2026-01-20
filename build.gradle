@@ -51,6 +51,9 @@ dependencies {
 
 	// JSoup
 	implementation 'org.jsoup:jsoup:1.22.1'
+
+	// WebClient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 dependencyManagement {
