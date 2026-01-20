@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import navik.ai.client.EmbeddingClient;
+import navik.ai.client.LLMClient;
+import navik.ai.dto.LLMResponseDTO;
 import navik.crawler.constants.JobKoreaConstant;
 import navik.crawler.dto.RecruitmentPost;
 import navik.crawler.enums.JobCode;
@@ -19,8 +22,6 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
-import navik.llm.client.LLMClient;
-import navik.llm.dto.LLMResponseDTO;
 
 @Slf4j
 @Service
@@ -32,6 +33,7 @@ public class CrawlerService {
 	private final CrawlerDataExtractor crawlerDataExtractor;
 	private final CrawlerValidator crawlerValidator;
 	private final LLMClient llmClient;
+	private final EmbeddingClient embeddingClient;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.

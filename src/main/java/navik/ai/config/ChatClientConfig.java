@@ -1,4 +1,4 @@
-package navik.llm.config;
+package navik.ai.config;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Bean;
