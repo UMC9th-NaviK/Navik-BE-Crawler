@@ -167,7 +167,7 @@ public class CrawlerService {
 		LLMResponseDTO.Recruitment llmResult = llmClient.getRecruitment(html);
 		log.info("[LLM 채용 공고 결과] {}", llmResult);
 
-		// 5. KPI 임베딩 및 DTO 가공
+		// 5. KPI 임베딩
 		List<Recruitment.Position> positions = llmResult.getPositions().stream()
 			.map(llmPosition -> {
 				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
@@ -191,6 +191,7 @@ public class CrawlerService {
 					.build();
 			}).toList();
 
+		// 6. DTO 생성
 		Recruitment recruitment = Recruitment.builder()
 			.link(llmResult.getLink())
 			.title(llmResult.getTitle())
@@ -205,7 +206,7 @@ public class CrawlerService {
 			.summary(llmResult.getSummary())
 			.build();
 
-		// 6. 발행
+		// 7. 발행
 
 	}
 }
