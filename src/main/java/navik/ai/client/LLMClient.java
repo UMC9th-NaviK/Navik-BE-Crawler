@@ -7,6 +7,7 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import navik.crawler.ai.dto.LLMResponseDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +41,7 @@ public class LLMClient {
 				- 특정 전공이 필수 요건으로 나타난 경우 majorType에 출력한다. 필수가 아니라면 null로 출력한다.
 				- 회사 로고가 없는 경우 null로 출력한다.
 				- 그 밖에 정보가 없는 경우 null로 출력한다.
+				- 요약은 KPI를 주제로 작성하고, 각 문장은 줄바꿈한다.
 				""")
 			.build();
 
