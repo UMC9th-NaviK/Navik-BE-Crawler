@@ -7,6 +7,9 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      stream:
+        keys:
+          crawl: ${STREAM_KEY}
 
   ai:
     openai:

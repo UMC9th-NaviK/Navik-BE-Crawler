@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
+import navik.redis.service.RedisStreamConsumer;
+import navik.redis.service.RedisStreamProducer;
 
 @Slf4j
 @Service
@@ -35,6 +38,11 @@ public class CrawlerService {
 	private final CrawlerValidator crawlerValidator;
 	private final LLMClient llmClient;
 	private final EmbeddingClient embeddingClient;
+	private final RedisStreamProducer redisStreamProducer;
+	private final RedisStreamConsumer redisStreamConsumer;
+
+	@Value("{spring.data.redis.stream.keys.crawl}")
+	private String recruitmentStreamKey;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -207,6 +215,6 @@ public class CrawlerService {
 			.build();
 
 		// 7. 발행
-
+		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);
 	}
 }
