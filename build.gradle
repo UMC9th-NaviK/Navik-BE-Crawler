@@ -31,6 +31,11 @@ dependencies {
 	// Spring Boot Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// Spring Boot Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -41,10 +46,11 @@ dependencies {
 	// Spring AI
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
-	// Spring Boot Test
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// Selenium
+	implementation 'org.seleniumhq.selenium:selenium-java:4.39.0'
+
+	// JSoup
+	implementation 'org.jsoup:jsoup:1.22.1'
 }
 
 dependencyManagement {
