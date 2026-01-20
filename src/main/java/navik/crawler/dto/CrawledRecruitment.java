@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class RecruitmentPost {
+public class CrawledRecruitment {
 
 	private String link;
 	private String title;

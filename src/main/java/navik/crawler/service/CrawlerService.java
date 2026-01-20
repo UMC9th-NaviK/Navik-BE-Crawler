@@ -16,7 +16,8 @@ import navik.ai.client.EmbeddingClient;
 import navik.ai.client.LLMClient;
 import navik.ai.dto.LLMResponseDTO;
 import navik.crawler.constants.JobKoreaConstant;
-import navik.crawler.dto.RecruitmentPost;
+import navik.crawler.dto.CrawledRecruitment;
+import navik.crawler.dto.Recruitment;
 import navik.crawler.enums.JobCode;
 import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
@@ -148,7 +149,7 @@ public class CrawlerService {
 		}
 
 		// 3. 나머지 데이터 추출 및 DTO 작성
-		RecruitmentPost recruitmentPost = RecruitmentPost.builder()
+		CrawledRecruitment crawledRecruitment = CrawledRecruitment.builder()
 			.link(link)
 			.title(title)
 			.postId(crawlerDataExtractor.extractPostId(wait))
@@ -162,11 +163,49 @@ public class CrawlerService {
 			.build();
 
 		// 4. LLM 호출
-		String html = recruitmentPost.toHtmlString();
-		LLMResponseDTO.Recruitment result = llmClient.getRecruitment(html);
-		log.info("[LLM 채용 공고 결과] {}", result);
+		String html = crawledRecruitment.toHtmlString();
+		LLMResponseDTO.Recruitment llmResult = llmClient.getRecruitment(html);
+		log.info("[LLM 채용 공고 결과] {}", llmResult);
 
-		// 5. DB 적재
-		// recruitmentCommandService.createRecruitment(result);
+		// 5. KPI 임베딩 및 DTO 가공
+		List<Recruitment.Position> positions = llmResult.getPositions().stream()
+			.map(llmPosition -> {
+				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
+					.map(kpi -> {
+						float[] embedding = embeddingClient.embed(kpi);
+						return Recruitment.KPI.builder()
+							.kpi(kpi)
+							.embedding(embedding)
+							.build();
+					}).toList();
+				return Recruitment.Position.builder()
+					.name(llmPosition.getName())
+					.jobType(llmPosition.getJobType())
+					.employmentType(llmPosition.getEmploymentType())
+					.experienceType(llmPosition.getExperienceType())
+					.educationLevel(llmPosition.getEducationLevel())
+					.areaType(llmPosition.getAreaType())
+					.detailAddress(llmPosition.getDetailAddress())
+					.majorType(llmPosition.getMajorType())
+					.kpis(kpis)
+					.build();
+			}).toList();
+
+		Recruitment recruitment = Recruitment.builder()
+			.link(llmResult.getLink())
+			.title(llmResult.getTitle())
+			.postId(llmResult.getPostId())
+			.companyName(llmResult.getCompanyName())
+			.companyLogo(llmResult.getCompanyLogo())
+			.companySize(llmResult.getCompanySize())
+			.industryType(llmResult.getIndustryType())
+			.startDate(llmResult.getStartDate())
+			.endDate(llmResult.getEndDate())
+			.positions(positions)
+			.summary(llmResult.getSummary())
+			.build();
+
+		// 6. 발행
+
 	}
 }
