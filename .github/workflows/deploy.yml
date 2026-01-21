@@ -1,0 +1,69 @@
+name: EC2 배포
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      ECR_AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+
+    steps:
+      - name: GitHub 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Gradle 실행 권한 부여
+        run: chmod +x gradlew
+
+      - name: JDK 21 설치
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Spring Boot JAR 빌드
+        run: ./gradlew clean bootJar -x test
+
+      - name: AWS 자격 증명
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR 리포지토리 존재 여부 확인 및 생성
+        run: |
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $ECR_AWS_REGION >/dev/null 2>&1 \
+          || aws ecr create-repository --repository-name $ECR_REPOSITORY --region $ECR_AWS_REGION
+
+      - name: Amazon ECR 로그인
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 빌드
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Docker 이미지 ECR에 푸시
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: EC2 SSM 연결 및 쉘 스크립트 실행
+        run: |
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=${{ secrets.AWS_EC2_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy new Docker image" \
+            --parameters 'commands=[
+              "rm -f /home/ubuntu/.env",
+              "echo \"${{ secrets.ENV }}\" >> /home/ubuntu/.env",
+              "echo \"ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}\" >> /home/ubuntu/.env",
+              "echo \"ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}\" >> /home/ubuntu/.env",
+              "sudo chmod +x /home/ubuntu/deploy.sh",
+              "sudo /home/ubuntu/deploy.sh ${{ env.IMAGE_TAG }}"
+            ]' \
+            --region ${{ secrets.AWS_REGION }}
