@@ -8,19 +8,24 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import navik.ai.client.EmbeddingClient;
+import navik.ai.client.LLMClient;
+import navik.ai.dto.LLMResponseDTO;
 import navik.crawler.constants.JobKoreaConstant;
-import navik.crawler.dto.RecruitmentPost;
+import navik.crawler.dto.CrawledRecruitment;
+import navik.crawler.dto.Recruitment;
 import navik.crawler.enums.JobCode;
 import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
-import navik.llm.client.LLMClient;
-import navik.llm.dto.LLMResponseDTO;
+import navik.redis.service.RedisStreamConsumer;
+import navik.redis.service.RedisStreamProducer;
 
 @Slf4j
 @Service
@@ -32,6 +37,12 @@ public class CrawlerService {
 	private final CrawlerDataExtractor crawlerDataExtractor;
 	private final CrawlerValidator crawlerValidator;
 	private final LLMClient llmClient;
+	private final EmbeddingClient embeddingClient;
+	private final RedisStreamProducer redisStreamProducer;
+	private final RedisStreamConsumer redisStreamConsumer;
+
+	@Value("{spring.data.redis.stream.keys.crawl}")
+	private String recruitmentStreamKey;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -146,7 +157,7 @@ public class CrawlerService {
 		}
 
 		// 3. 나머지 데이터 추출 및 DTO 작성
-		RecruitmentPost recruitmentPost = RecruitmentPost.builder()
+		CrawledRecruitment crawledRecruitment = CrawledRecruitment.builder()
 			.link(link)
 			.title(title)
 			.postId(crawlerDataExtractor.extractPostId(wait))
@@ -160,11 +171,50 @@ public class CrawlerService {
 			.build();
 
 		// 4. LLM 호출
-		String html = recruitmentPost.toHtmlString();
-		LLMResponseDTO.Recruitment result = llmClient.getRecruitment(html);
-		log.info("[LLM 채용 공고 결과] {}", result);
+		String html = crawledRecruitment.toHtmlString();
+		LLMResponseDTO.Recruitment llmResult = llmClient.getRecruitment(html);
+		log.info("[LLM 채용 공고 결과] {}", llmResult);
 
-		// 5. DB 적재
-		// recruitmentCommandService.createRecruitment(result);
+		// 5. KPI 임베딩
+		List<Recruitment.Position> positions = llmResult.getPositions().stream()
+			.map(llmPosition -> {
+				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
+					.map(kpi -> {
+						float[] embedding = embeddingClient.embed(kpi);
+						return Recruitment.KPI.builder()
+							.kpi(kpi)
+							.embedding(embedding)
+							.build();
+					}).toList();
+				return Recruitment.Position.builder()
+					.name(llmPosition.getName())
+					.jobType(llmPosition.getJobType())
+					.employmentType(llmPosition.getEmploymentType())
+					.experienceType(llmPosition.getExperienceType())
+					.educationLevel(llmPosition.getEducationLevel())
+					.areaType(llmPosition.getAreaType())
+					.detailAddress(llmPosition.getDetailAddress())
+					.majorType(llmPosition.getMajorType())
+					.kpis(kpis)
+					.build();
+			}).toList();
+
+		// 6. DTO 생성
+		Recruitment recruitment = Recruitment.builder()
+			.link(llmResult.getLink())
+			.title(llmResult.getTitle())
+			.postId(llmResult.getPostId())
+			.companyName(llmResult.getCompanyName())
+			.companyLogo(llmResult.getCompanyLogo())
+			.companySize(llmResult.getCompanySize())
+			.industryType(llmResult.getIndustryType())
+			.startDate(llmResult.getStartDate())
+			.endDate(llmResult.getEndDate())
+			.positions(positions)
+			.summary(llmResult.getSummary())
+			.build();
+
+		// 7. 발행
+		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);
 	}
 }

@@ -1,4 +1,4 @@
-package navik.llm.dto;
+package navik.ai.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -6,14 +6,14 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import navik.llm.enums.AreaType;
-import navik.llm.enums.CompanySize;
-import navik.llm.enums.EducationLevel;
-import navik.llm.enums.EmploymentType;
-import navik.llm.enums.ExperienceType;
-import navik.llm.enums.IndustryType;
-import navik.llm.enums.JobType;
-import navik.llm.enums.MajorType;
+import navik.ai.enums.AreaType;
+import navik.ai.enums.CompanySize;
+import navik.ai.enums.EducationLevel;
+import navik.ai.enums.EmploymentType;
+import navik.ai.enums.ExperienceType;
+import navik.ai.enums.IndustryType;
+import navik.ai.enums.JobType;
+import navik.ai.enums.MajorType;
 
 /**
  * Structured Output 관리
