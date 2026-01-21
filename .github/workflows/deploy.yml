@@ -38,19 +38,19 @@ jobs:
 
       - name: ECR 리포지토리 존재 여부 확인 및 생성
         run: |
-          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $ECR_AWS_REGION >/dev/null 2>&1 \
-          || aws ecr create-repository --repository-name $ECR_REPOSITORY --region $ECR_AWS_REGION
+          aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} --region ${ECR_AWS_REGION} >/dev/null 2>&1 \
+          || aws ecr create-repository --repository-name ${ECR_REPOSITORY} --region ${ECR_AWS_REGION}
 
       - name: Amazon ECR 로그인
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Docker 이미지 빌드
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:{$IMAGE_TAG} .
 
       - name: Docker 이미지 ECR에 푸시
         run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:{$IMAGE_TAG}
 
       - name: EC2 SSM 연결 및 쉘 스크립트 실행
         run: |
@@ -63,7 +63,8 @@ jobs:
               "echo \"${{ secrets.ENV }}\" >> /home/ubuntu/.env",
               "echo \"ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}\" >> /home/ubuntu/.env",
               "echo \"ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}\" >> /home/ubuntu/.env",
+              "echo \"IMAGE_TAG=${{ env.IMAGE_TAG }}\" >> /home/ubuntu/.env",
               "sudo chmod +x /home/ubuntu/deploy.sh",
-              "sudo /home/ubuntu/deploy.sh ${{ env.IMAGE_TAG }}"
+              "sudo /home/ubuntu/deploy.sh"
             ]' \
             --region ${{ secrets.AWS_REGION }}
