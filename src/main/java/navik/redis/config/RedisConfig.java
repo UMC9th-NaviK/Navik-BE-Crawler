@@ -17,7 +17,7 @@ public class RedisConfig {
 	private int port;
 
 	/**
-	 * Redis 연결을 위한 'Connection' 생성합니다.
+	 * Redis 연결을 위한 'Connection'을 생성합니다.
 	 */
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {

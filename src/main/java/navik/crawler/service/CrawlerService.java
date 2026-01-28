@@ -176,10 +176,10 @@ public class CrawlerService {
 		// 5. KPI 임베딩
 		List<Recruitment.Position> positions = llmResult.getPositions().stream()
 			.map(llmPosition -> {
-				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
+				List<Recruitment.Position.KPI> kpis = llmPosition.getKpis().stream()
 					.map(kpi -> {
 						float[] embedding = embeddingClient.embed(kpi);
-						return Recruitment.KPI.builder()
+						return Recruitment.Position.KPI.builder()
 							.kpi(kpi)
 							.embedding(embedding)
 							.build();
