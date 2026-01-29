@@ -48,7 +48,7 @@ public class CrawlerSearchHelper {
 	 */
 	public void applySort(WebDriverWait wait) {
 		WebElement sortElement = wait.until(ExpectedConditions.elementToBeClickable(
-			By.cssSelector("#orderTab option[value='3']")    // 3: 최신 업데이트 순
+			By.cssSelector("#orderTab option[value='2']")    // 2: 등록일 기준으로 파싱
 		));
 		sortElement.click();
 	}

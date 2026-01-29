@@ -39,7 +39,7 @@ public class CrawlerService {
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
 
-	@Value("{spring.data.redis.stream.keys.crawl}")
+	@Value("${spring.data.redis.stream.keys.crawl}")
 	private String recruitmentStreamKey;
 
 	/**
