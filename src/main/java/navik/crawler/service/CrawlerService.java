@@ -38,7 +38,7 @@ public class CrawlerService {
 	private final LLMClient llmClient;
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
-
+	
 	@Value("${spring.data.redis.stream.keys.crawl}")
 	private String recruitmentStreamKey;
 
