@@ -50,7 +50,7 @@ jobs:
 
       - name: Docker 이미지 ECR에 푸시
         run: |
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:{$IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
 
       - name: EC2 SSM 연결 및 쉘 스크립트 실행
         run: |
