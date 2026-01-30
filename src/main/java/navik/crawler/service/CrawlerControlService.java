@@ -11,8 +11,12 @@ public class CrawlerControlService {
 
 	private final CrawlerScheduler scheduler;
 
+	public boolean triggerSchedule() {
+		return scheduler.scheduledCrawl();
+	}
+
 	public boolean stopCrawler() {
-		return scheduler.stopCurrentTask();
+		return scheduler.stop();
 	}
 
 	public boolean isRunning() {

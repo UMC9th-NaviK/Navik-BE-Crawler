@@ -1,5 +1,6 @@
 package navik.crawler.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,16 +53,14 @@ public class CrawlerService {
 
 		// 2. JobCode(직무)별 크롤링
 		try {
+			log.info("스케쥴링이 시작되었습니다. 시간: {}", LocalDateTime.now());
 			for (JobCode jobCode : JobCode.values()) {
-				if (Thread.currentThread().isInterrupted()) {
-					log.warn("강제 캔슬되었습니다.");
-					return;
-				}
 				log.info("=== [{}] 직무 크롤링 시작 ===", jobCode.name());
 				driver.get(JobKoreaConstant.RECRUITMENT_LIST_URL);
 				search(wait, jobCode);    // 직무 기반 필터 적용 및 검색
 				processPages(driver, wait, pagesToCrawl); // 페이지 수 만큼 파싱
 			}
+			log.info("스케쥴링이 종료되었습니다. 시간: {}", LocalDateTime.now());
 		} catch (Exception exception) {
 			log.error("스케쥴링 작업 중 오류 발생\n{}", exception.getMessage());
 		} finally {
@@ -107,10 +106,6 @@ public class CrawlerService {
 
 			// 공고 처리
 			for (WebElement post : posts) {
-
-				// 강제 캔슬
-				if (Thread.currentThread().isInterrupted())
-					return;
 
 				// 클릭 및 대기
 				post.click();
