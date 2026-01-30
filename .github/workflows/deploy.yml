@@ -61,7 +61,7 @@ jobs:
             --parameters 'commands=[
               "rm -f /home/ubuntu/.env",
               "echo \"${{ secrets.ENV }}\" >> /home/ubuntu/.env",
-              "echo \"ERC_REGION=${ECR_REGION}\" >> /home/ubuntu/.env",
+              "echo \"ECR_REGION=${ECR_REGION}\" >> /home/ubuntu/.env",
               "echo \"ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}\" >> /home/ubuntu/.env",
               "echo \"ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}\" >> /home/ubuntu/.env",
               "echo \"IMAGE_TAG=${{ env.IMAGE_TAG }}\" >> /home/ubuntu/.env",
