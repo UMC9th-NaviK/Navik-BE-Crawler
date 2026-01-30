@@ -23,9 +23,9 @@ public class ImageHelper {
 			log.warn("[ImageHelper] 이미지 URL이 null이거나 비어있습니다.");
 			return null;
 		}
-		
+
 		if (imageUrl.startsWith("data:")) {
-			log.warn("[ImageHelper] data URI 이미지는 처리하지 않습니다: {}", imageUrl);
+			log.warn("[ImageHelper] data URI 이미지는 처리하지 않습니다");
 			return null;
 		}
 
