@@ -17,7 +17,7 @@ spring:
       chat:
         options:
           model: gpt-4.1-mini
-          temperature: 0.0
+          temperature: 0.3
       embedding:
         options:
           model: text-embedding-3-small

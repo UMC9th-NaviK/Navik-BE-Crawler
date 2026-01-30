@@ -24,7 +24,6 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
-import navik.redis.service.RedisStreamConsumer;
 import navik.redis.service.RedisStreamProducer;
 
 @Slf4j
@@ -39,9 +38,8 @@ public class CrawlerService {
 	private final LLMClient llmClient;
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
-	private final RedisStreamConsumer redisStreamConsumer;
 
-	@Value("{spring.data.redis.stream.keys.crawl}")
+	@Value("${spring.data.redis.stream.keys.crawl}")
 	private String recruitmentStreamKey;
 
 	/**
@@ -178,10 +176,10 @@ public class CrawlerService {
 		// 5. KPI 임베딩
 		List<Recruitment.Position> positions = llmResult.getPositions().stream()
 			.map(llmPosition -> {
-				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
+				List<Recruitment.Position.KPI> kpis = llmPosition.getKpis().stream()
 					.map(kpi -> {
 						float[] embedding = embeddingClient.embed(kpi);
-						return Recruitment.KPI.builder()
+						return Recruitment.Position.KPI.builder()
 							.kpi(kpi)
 							.embedding(embedding)
 							.build();
