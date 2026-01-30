@@ -2,6 +2,7 @@ package navik.crawler.scheduler;
 
 import java.time.LocalDateTime;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import navik.crawler.service.CrawlerService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("prod")
 public class CrawlerRecruitmentScheduler {
 
 	private final CrawlerService crawlerService;
