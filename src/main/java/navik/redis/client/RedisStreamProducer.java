@@ -1,4 +1,4 @@
-package navik.redis.service;
+package navik.redis.client;
 
 import java.util.Objects;
 
