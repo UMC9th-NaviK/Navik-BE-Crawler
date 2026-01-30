@@ -1,19 +1,19 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       stream:
         keys:
-          crawl: ${CRAWL_STREAM_KEY:stream}
+          crawl: ${CRAWL_STREAM_KEY}
 
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:hello}
+      api-key: ${OPENAI_API_KEY}
       chat:
         options:
           model: gpt-4.1-mini
@@ -24,5 +24,5 @@ spring:
 
 naver:
   ocr:
-    url: ${NAVER_OCR_URL:naver}
-    secretKey: ${NAVER_OCR_SECRET_KEY:good}
+    url: ${NAVER_OCR_URL}
+    secretKey: ${NAVER_OCR_SECRET_KEY}

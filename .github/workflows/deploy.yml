@@ -46,11 +46,11 @@ jobs:
 
       - name: Docker 이미지 빌드
         run: |
-          docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:{$IMAGE_TAG} .
+          docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} .
 
       - name: Docker 이미지 ECR에 푸시
         run: |
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:{$IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
 
       - name: EC2 SSM 연결 및 쉘 스크립트 실행
         run: |
@@ -61,6 +61,7 @@ jobs:
             --parameters 'commands=[
               "rm -f /home/ubuntu/.env",
               "echo \"${{ secrets.ENV }}\" >> /home/ubuntu/.env",
+              "echo \"ECR_AWS_REGION=${{ secrets.AWS_REGION }}\" >> /home/ubuntu/.env",
               "echo \"ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}\" >> /home/ubuntu/.env",
               "echo \"ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}\" >> /home/ubuntu/.env",
               "echo \"IMAGE_TAG=${{ env.IMAGE_TAG }}\" >> /home/ubuntu/.env",
