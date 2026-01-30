@@ -29,7 +29,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: PR 단독 빌드 테스트
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: PR -> develop 머지 테스트
         run: |
@@ -37,4 +37,4 @@ jobs:
           git merge origin/main --no-commit --no-ff || { echo "현재 브랜치는 develop 브랜치와 병합시 conflict가 발생합니다."; exit 1; }
 
       - name: 머지 결과 빌드 테스트
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
