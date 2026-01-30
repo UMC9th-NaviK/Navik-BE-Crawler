@@ -7,6 +7,9 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      stream:
+        keys:
+          crawl: ${CRAWL_STREAM_KEY}
 
   ai:
     openai:
@@ -14,7 +17,7 @@ spring:
       chat:
         options:
           model: gpt-4.1-mini
-          temperature: 0.0
+          temperature: 0.3
       embedding:
         options:
           model: text-embedding-3-small
