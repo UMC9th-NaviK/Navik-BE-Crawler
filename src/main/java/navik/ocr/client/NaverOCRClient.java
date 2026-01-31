@@ -115,6 +115,70 @@ public class NaverOCRClient implements OCRClient {
 		return result.trim();
 	}
 
+	/**
+	 * PDF URL로부터 텍스트를 추출합니다.
+	 * 이미지와 달리 메타데이터(width/height) 검증을 생략하고, Naver OCR API에 직접 요청합니다.
+	 */
+	@Override
+	public String extractFromPdfUrl(String pdfUrl) {
+		if (pdfUrl == null || pdfUrl.isBlank()) {
+			log.error("[NaverOcrService] PDF URL이 null이거나 비어있습니다.");
+			return "";
+		}
+
+		try {
+			return requestPdfApi(pdfUrl);
+		} catch (Exception e) {
+			log.error("[NaverOcrService] PDF OCR 처리에 실패하였습니다: {}", e.getMessage(), e);
+			return "";
+		}
+	}
+
+	private String requestPdfApi(String pdfUrl) {
+
+		NaverOCRRequestDTO.Image image = NaverOCRRequestDTO.Image.builder()
+			.format("pdf")
+			.name("navik-pdf")
+			.url(pdfUrl)
+			.build();
+
+		NaverOCRRequestDTO.Request requestBody = NaverOCRRequestDTO.Request.builder()
+			.version(NaverOCRConstant.RECOMMENDED_VERSION)
+			.requestId(UUID.randomUUID().toString())
+			.timestamp(System.currentTimeMillis())
+			.lang(NaverOCRConstant.LANG_KOREAN)
+			.images(List.of(image))
+			.build();
+
+		NaverOCRResponseDTO.Response responseBody = webClient.post()
+			.uri(apiUrl)
+			.header("X-OCR-SECRET", secretKey)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(BodyInserters.fromValue(requestBody))
+			.retrieve()
+			.bodyToMono(NaverOCRResponseDTO.Response.class)
+			.block();
+
+		if (responseBody == null || responseBody.getImages() == null) {
+			log.error("[NaverOcrService] PDF OCR API 응답이 null입니다: {}", pdfUrl);
+			return "";
+		}
+
+		responseBody.getImages().stream()
+			.filter(img -> !"SUCCESS".equals(img.getInferResult()))
+			.forEach(img -> log.warn("[NaverOcrService] PDF OCR 인식 실패 - name: {}, result: {}, message: {}",
+				img.getName(), img.getInferResult(), img.getMessage()));
+
+		String result = responseBody.getImages().stream()
+			.filter(img -> "SUCCESS".equals(img.getInferResult()))
+			.filter(img -> img.getFields() != null)
+			.flatMap(img -> img.getFields().stream())
+			.map(NaverOCRResponseDTO.Field::getInferText)
+			.collect(Collectors.joining(" "));
+
+		return result.trim();
+	}
+
 	private boolean isSupportedExtension(String extension) {
 		return !extension.isBlank() && NaverOCRConstant.SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
 	}
