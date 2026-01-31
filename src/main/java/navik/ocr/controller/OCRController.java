@@ -19,16 +19,9 @@ public class OCRController {
 	private final OCRClient ocrClient;
 
 	@PostMapping("/pdf")
-	public ResponseEntity<OCRResponseDTO.PdfOCR> extractTextFromPdf(
-		@RequestBody OCRRequestDTO.PdfOCR request) {
-
-		String text = ocrClient.extractFromPdfUrl(request.getPdfUrl());
-		System.out.println(text);
+	public ResponseEntity<OCRResponseDTO.PdfOCR> extractTextFromPdf(@RequestBody OCRRequestDTO.PdfOCR request) {
 
 		return ResponseEntity.ok(
-			OCRResponseDTO.PdfOCR.builder()
-				.text(text)
-				.build()
-		);
+			OCRResponseDTO.PdfOCR.builder().text(ocrClient.extractFromPdfUrl(request.getPdfUrl())).build());
 	}
 }

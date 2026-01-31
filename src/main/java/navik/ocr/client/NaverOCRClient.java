@@ -105,7 +105,8 @@ public class NaverOCRClient implements OCRClient {
 			.block();
 
 		// 4. 텍스트 추출
-		String result = responseBody.getImages().stream()
+		String result = responseBody.getImages()
+			.stream()
 			.filter(img -> "SUCCESS".equals(img.getInferResult()))
 			.flatMap(img -> img.getFields().stream())
 			.map(NaverOCRResponseDTO.Field::getInferText)
@@ -127,56 +128,11 @@ public class NaverOCRClient implements OCRClient {
 		}
 
 		try {
-			return requestPdfApi(pdfUrl);
+			return requestApi(pdfUrl, "pdf");
 		} catch (Exception e) {
 			log.error("[NaverOcrService] PDF OCR 처리에 실패하였습니다: {}", e.getMessage(), e);
 			return "";
 		}
-	}
-
-	private String requestPdfApi(String pdfUrl) {
-
-		NaverOCRRequestDTO.Image image = NaverOCRRequestDTO.Image.builder()
-			.format("pdf")
-			.name("navik-pdf")
-			.url(pdfUrl)
-			.build();
-
-		NaverOCRRequestDTO.Request requestBody = NaverOCRRequestDTO.Request.builder()
-			.version(NaverOCRConstant.RECOMMENDED_VERSION)
-			.requestId(UUID.randomUUID().toString())
-			.timestamp(System.currentTimeMillis())
-			.lang(NaverOCRConstant.LANG_KOREAN)
-			.images(List.of(image))
-			.build();
-
-		NaverOCRResponseDTO.Response responseBody = webClient.post()
-			.uri(apiUrl)
-			.header("X-OCR-SECRET", secretKey)
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(BodyInserters.fromValue(requestBody))
-			.retrieve()
-			.bodyToMono(NaverOCRResponseDTO.Response.class)
-			.block();
-
-		if (responseBody == null || responseBody.getImages() == null) {
-			log.error("[NaverOcrService] PDF OCR API 응답이 null입니다: {}", pdfUrl);
-			return "";
-		}
-
-		responseBody.getImages().stream()
-			.filter(img -> !"SUCCESS".equals(img.getInferResult()))
-			.forEach(img -> log.warn("[NaverOcrService] PDF OCR 인식 실패 - name: {}, result: {}, message: {}",
-				img.getName(), img.getInferResult(), img.getMessage()));
-
-		String result = responseBody.getImages().stream()
-			.filter(img -> "SUCCESS".equals(img.getInferResult()))
-			.filter(img -> img.getFields() != null)
-			.flatMap(img -> img.getFields().stream())
-			.map(NaverOCRResponseDTO.Field::getInferText)
-			.collect(Collectors.joining(" "));
-
-		return result.trim();
 	}
 
 	private boolean isSupportedExtension(String extension) {
