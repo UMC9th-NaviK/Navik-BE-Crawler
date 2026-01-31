@@ -1,5 +1,7 @@
 package navik.growth.analysis.dto;
 
+import java.util.List;
+
 import lombok.Builder;
 
 public class AnalysisResponse {
@@ -10,9 +12,13 @@ public class AnalysisResponse {
 	@Builder
 	public record GrowthAnalysisResponse(
 		String title,
-		String summary,
-		String feedback,
-		Integer score
+		String content,
+		List<KpiDelta> kpis
 	) {
+		public record KpiDelta(
+			Long kpiCardId,
+			Integer delta
+		) {
+		}
 	}
 }

@@ -21,4 +21,21 @@ public class ToolRequests {
 		String url
 	) {
 	}
+
+	public record KpiRetrievalRequest(
+		@JsonProperty(required = true)
+		@JsonPropertyDescription("직무 ID - 해당 직무의 KPI 카드 목록(10개)을 조회합니다")
+		Long jobId
+	) {
+	}
+
+	public record LevelCriteriaRequest(
+		@JsonProperty(required = true)
+		@JsonPropertyDescription("직무 ID")
+		Long jobId,
+		@JsonProperty(required = true)
+		@JsonPropertyDescription("사용자 레벨 값 - 해당 레벨의 점수 산정 가이드라인을 조회합니다")
+		Integer levelValue
+	) {
+	}
 }

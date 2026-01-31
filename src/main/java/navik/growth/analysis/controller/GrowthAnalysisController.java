@@ -27,13 +27,14 @@ public class GrowthAnalysisController {
 	/**
 	 * 성장 기록 분석 API
 	 *
-	 * @param request 분석 요청 (sourceUrl, jobContext)
-	 * @return 분석 결과 (title, summary, feedback, score)
+	 * @param request 분석 요청 (userId, jobId, levelValue, context)
+	 * @return 분석 결과 (title, content, 10개 kpiDeltas)
 	 */
 	@PostMapping(consumes = "application/json; charset=UTF-8", produces = "application/json; charset=UTF-8")
 	public ResponseEntity<AnalysisResponse.GrowthAnalysisResponse> analyzeGrowthLog(
 		@RequestBody @Valid AnalysisRequest.GrowthAnalysisRequest request) {
-		log.info("성장 기록 분석 요청 - userId: {}, URL: {}", request.userId(), request.sourceUrl());
+		log.info("성장 기록 분석 요청 - userId: {}, jobId: {}, level: {}", request.userId(), request.jobId(),
+			request.levelValue());
 
 		AnalysisResponse.GrowthAnalysisResponse response = analysisService.analyze(request);
 

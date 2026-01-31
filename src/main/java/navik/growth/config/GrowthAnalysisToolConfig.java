@@ -9,7 +9,11 @@ import org.springframework.context.annotation.Description;
 import navik.growth.extractor.GitHubPRExtractor;
 import navik.growth.extractor.NotionPageExtractor;
 import navik.growth.tool.dto.ToolRequests.GitHubPRRequest;
+import navik.growth.tool.dto.ToolRequests.KpiRetrievalRequest;
+import navik.growth.tool.dto.ToolRequests.LevelCriteriaRequest;
 import navik.growth.tool.dto.ToolRequests.NotionPageRequest;
+import navik.growth.tool.service.KpiCardService;
+import navik.growth.tool.service.LevelCriteriaService;
 
 /**
  * Spring AI Function Calling을 위한 Tool 정의
@@ -44,6 +48,38 @@ public class GrowthAnalysisToolConfig {
 				return extractor.extractPublicPR(request.url());
 			} catch (Exception e) {
 				return "Error: GitHub PR을 가져오는데 실패했습니다. " + e.getMessage();
+			}
+		};
+	}
+
+	/**
+	 * 직무 ID로 해당 직무의 10개 KPI 카드 정보를 조회하는 Tool
+	 * AI가 JobId를 보고 호출하여 DB에서 해당 직무의 KPI 카드 정보를 로드
+	 */
+	@Bean
+	@Description("직무 ID로 해당 직무의 10개 KPI 카드 정보를 조회합니다. 각 카드의 id, name, description, category를 포함한 텍스트를 반환합니다.")
+	public Function<KpiRetrievalRequest, String> retrieveKpiCards(KpiCardService kpiCardService) {
+		return request -> {
+			try {
+				return kpiCardService.findKpiCardsByJobId(request.jobId());
+			} catch (Exception e) {
+				return "Error: KPI 카드 조회에 실패했습니다. " + e.getMessage();
+			}
+		};
+	}
+
+	/**
+	 * 레벨 값으로 해당 레벨의 점수 산정 가이드라인을 조회하는 Tool
+	 * AI가 Level을 보고 호출하여 점수 산정 기준을 로드
+	 */
+	@Bean
+	@Description("사용자 레벨 값으로 해당 레벨의 점수 산정 가이드라인을 조회합니다. 레벨에 맞는 평가 기준과 점수 범위를 텍스트로 반환합니다.")
+	public Function<LevelCriteriaRequest, String> retrieveLevelCriteria(LevelCriteriaService levelCriteriaService) {
+		return request -> {
+			try {
+				return levelCriteriaService.findCriteria(request.jobId(), request.levelValue());
+			} catch (Exception e) {
+				return "Error: 레벨 가이드라인 조회에 실패했습니다. " + e.getMessage();
 			}
 		};
 	}
