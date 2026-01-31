@@ -24,7 +24,7 @@ public class CrawledRecruitment {
 		return "\n<현재 시간>" + LocalDateTime.now() + "</현재 시간>\n"
 			+ "\n<링크>" + link + "</링크>\n"
 			+ "\n<제목>" + title + "</제목>\n"
-			+ "\n<공고 ID>" + postId + "</공고 ID>\n"
+			+ "\n<postId>" + postId + "</postId>\n"
 			+ "\n<회사명>" + companyName + "</회사명>\n"
 			+ "\n<회사 로고>" + companyLogo + "</회사 로고>\n"
 			+ "\n<회사 정보>" + companyInfo + "</회사 정보>\n"

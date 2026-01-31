@@ -1,0 +1,28 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      stream:
+        keys:
+          crawl: ${CRAWL_STREAM_KEY}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4.1-mini
+          temperature: 0.3
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+naver:
+  ocr:
+    url: ${NAVER_OCR_URL}
+    secretKey: ${NAVER_OCR_SECRET_KEY}

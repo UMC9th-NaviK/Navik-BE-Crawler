@@ -1,5 +1,6 @@
 package navik.crawler.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
-import navik.redis.service.RedisStreamProducer;
+import navik.redis.client.RedisStreamProducer;
 
 @Slf4j
 @Service
@@ -39,7 +40,7 @@ public class CrawlerService {
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
 
-	@Value("{spring.data.redis.stream.keys.crawl}")
+	@Value("${spring.data.redis.stream.keys.crawl}")
 	private String recruitmentStreamKey;
 
 	/**
@@ -52,12 +53,14 @@ public class CrawlerService {
 
 		// 2. JobCode(직무)별 크롤링
 		try {
+			log.info("스케쥴링이 시작되었습니다. 시간: {}", LocalDateTime.now());
 			for (JobCode jobCode : JobCode.values()) {
 				log.info("=== [{}] 직무 크롤링 시작 ===", jobCode.name());
 				driver.get(JobKoreaConstant.RECRUITMENT_LIST_URL);
 				search(wait, jobCode);    // 직무 기반 필터 적용 및 검색
 				processPages(driver, wait, pagesToCrawl); // 페이지 수 만큼 파싱
 			}
+			log.info("스케쥴링이 종료되었습니다. 시간: {}", LocalDateTime.now());
 		} catch (Exception exception) {
 			log.error("스케쥴링 작업 중 오류 발생\n{}", exception.getMessage());
 		} finally {
@@ -176,10 +179,10 @@ public class CrawlerService {
 		// 5. KPI 임베딩
 		List<Recruitment.Position> positions = llmResult.getPositions().stream()
 			.map(llmPosition -> {
-				List<Recruitment.KPI> kpis = llmPosition.getKpis().stream()
+				List<Recruitment.Position.KPI> kpis = llmPosition.getKpis().stream()
 					.map(kpi -> {
 						float[] embedding = embeddingClient.embed(kpi);
-						return Recruitment.KPI.builder()
+						return Recruitment.Position.KPI.builder()
 							.kpi(kpi)
 							.embedding(embedding)
 							.build();

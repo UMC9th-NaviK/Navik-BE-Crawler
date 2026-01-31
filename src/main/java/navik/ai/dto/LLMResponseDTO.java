@@ -15,9 +15,6 @@ import navik.ai.enums.IndustryType;
 import navik.ai.enums.JobType;
 import navik.ai.enums.MajorType;
 
-/**
- * Structured Output 관리
- */
 public class LLMResponseDTO {
 
 	@ToString

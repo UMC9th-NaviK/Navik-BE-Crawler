@@ -42,12 +42,12 @@ public class Recruitment {
 		private String detailAddress;
 		private MajorType majorType;
 		private List<KPI> kpis;
-	}
 
-	@Getter
-	@Builder
-	public static class KPI {
-		private String kpi;
-		private float[] embedding;
+		@Getter
+		@Builder
+		public static class KPI {
+			private String kpi;
+			private float[] embedding;
+		}
 	}
 }
