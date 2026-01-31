@@ -1,7 +1,9 @@
 package navik.growth.notion.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +18,8 @@ import navik.growth.notion.config.NotionOAuthProperties;
 import navik.growth.notion.dto.NotionOAuthRequest;
 import navik.growth.notion.dto.NotionOAuthResponse;
 import navik.growth.notion.dto.NotionOAuthResponse.TokenResponse;
+import navik.growth.notion.dto.NotionOAuthResponse.WorkspaceInfo;
+import navik.growth.notion.dto.NotionWorkspaceToken;
 import navik.growth.notion.exception.NotionNotConnectedException;
 import navik.growth.notion.repository.NotionTokenRepository;
 
@@ -86,20 +90,45 @@ public class NotionOAuthService {
 	}
 
 	/**
-	 * 토큰 저장
+	 * TokenResponse 전체 정보로 워크스페이스 토큰 저장
 	 */
-	public void saveToken(String userId, String accessToken) {
-		tokenRepository.save(userId, accessToken);
+	public void saveToken(String userId, TokenResponse tokenResponse) {
+		NotionWorkspaceToken workspaceToken = new NotionWorkspaceToken(
+			tokenResponse.accessToken(),
+			tokenResponse.workspaceId(),
+			tokenResponse.workspaceName(),
+			tokenResponse.workspaceIcon(),
+			tokenResponse.botId(),
+			Instant.now().toEpochMilli()
+		);
+		tokenRepository.save(userId, workspaceToken);
 	}
 
 	/**
-	 * 사용자 토큰 조회
+	 * 사용자의 모든 워크스페이스 토큰 조회
 	 */
-	public String getAccessToken(String userId) {
-		return tokenRepository.findByUserId(userId)
-			.orElseThrow(() -> new NotionNotConnectedException(
+	public List<NotionWorkspaceToken> getAllWorkspaceTokens(String userId) {
+		List<NotionWorkspaceToken> tokens = tokenRepository.findAllByUserId(userId);
+		if (tokens.isEmpty()) {
+			throw new NotionNotConnectedException(
 				"Notion이 연동되지 않았습니다. 먼저 /api/notion/oauth/authorize?user_id=" + userId + " 로 연동해주세요."
-			));
+			);
+		}
+		return tokens;
+	}
+
+	/**
+	 * 연동된 워크스페이스 목록 반환
+	 */
+	public List<WorkspaceInfo> getConnectedWorkspaces(String userId) {
+		return tokenRepository.findAllByUserId(userId).stream()
+			.map(token -> new WorkspaceInfo(
+				token.workspaceId(),
+				token.workspaceName(),
+				token.workspaceIcon(),
+				token.connectedAt()
+			))
+			.toList();
 	}
 
 	/**
@@ -110,9 +139,16 @@ public class NotionOAuthService {
 	}
 
 	/**
-	 * 연동 해제
+	 * 특정 워크스페이스 연동 해제
 	 */
-	public void disconnect(String userId) {
-		tokenRepository.deleteByUserId(userId);
+	public void disconnect(String userId, String workspaceId) {
+		tokenRepository.deleteByUserIdAndWorkspaceId(userId, workspaceId);
+	}
+
+	/**
+	 * 전체 워크스페이스 연동 해제
+	 */
+	public void disconnectAll(String userId) {
+		tokenRepository.deleteAllByUserId(userId);
 	}
 }

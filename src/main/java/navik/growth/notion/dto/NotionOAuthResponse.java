@@ -1,5 +1,7 @@
 package navik.growth.notion.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,19 +38,30 @@ public class NotionOAuthResponse {
 		boolean success,
 		String message,
 		String userId,
-		String workspaceName
+		String workspaceName,
+		String workspaceId
 	) {
 	}
 
 	public record StatusResponse(
 		String userId,
-		boolean connected
+		boolean connected,
+		List<WorkspaceInfo> workspaces
+	) {
+	}
+
+	public record WorkspaceInfo(
+		String workspaceId,
+		String workspaceName,
+		String workspaceIcon,
+		long connectedAt
 	) {
 	}
 
 	public record DisconnectResponse(
 		String userId,
-		String message
+		String message,
+		String workspaceId
 	) {
 	}
 }

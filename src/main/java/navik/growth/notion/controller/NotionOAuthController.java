@@ -1,6 +1,7 @@
 package navik.growth.notion.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import navik.growth.notion.dto.NotionOAuthResponse;
+import navik.growth.notion.dto.NotionOAuthResponse.WorkspaceInfo;
 import navik.growth.notion.service.NotionOAuthService;
 
 @Slf4j
@@ -58,14 +60,14 @@ public class NotionOAuthController {
 		if (error != null) {
 			log.warn("Notion OAuth 거부됨: error={}, userId={}", error, state);
 			return ResponseEntity.badRequest()
-				.body(new NotionOAuthResponse.CallbackResponse(false, "Notion 연동이 거부되었습니다.", state, null));
+				.body(new NotionOAuthResponse.CallbackResponse(false, "Notion 연동이 거부되었습니다.", state, null, null));
 		}
 
 		// state(userId) 검증
 		if (state == null || state.isBlank()) {
 			log.error("Notion OAuth 콜백 오류: state 누락");
 			return ResponseEntity.badRequest()
-				.body(new NotionOAuthResponse.CallbackResponse(false, "잘못된 요청입니다. (state 누락)", null, null));
+				.body(new NotionOAuthResponse.CallbackResponse(false, "잘못된 요청입니다. (state 누락)", null, null, null));
 		}
 
 		try {
@@ -74,16 +76,18 @@ public class NotionOAuthController {
 			// Authorization Code → Access Token 교환
 			NotionOAuthResponse.TokenResponse tokenResponse = oAuthService.exchangeCodeForToken(code);
 
-			// 토큰 저장
-			oAuthService.saveToken(state, tokenResponse.accessToken());
+			// 토큰 저장 (TokenResponse 전체 전달)
+			oAuthService.saveToken(state, tokenResponse);
 
-			log.info("Notion 연동 완료: userId={}, workspace={}", state, tokenResponse.workspaceName());
+			log.info("Notion 연동 완료: userId={}, workspace={}, workspaceId={}",
+				state, tokenResponse.workspaceName(), tokenResponse.workspaceId());
 
 			return ResponseEntity.ok(new NotionOAuthResponse.CallbackResponse(
 				true,
 				"Notion 연동이 완료되었습니다!",
 				state,
-				tokenResponse.workspaceName()
+				tokenResponse.workspaceName(),
+				tokenResponse.workspaceId()
 			));
 
 		} catch (Exception e) {
@@ -91,26 +95,38 @@ public class NotionOAuthController {
 			return ResponseEntity.internalServerError()
 				.body(
 					new NotionOAuthResponse.CallbackResponse(false, "Notion 연동 중 오류가 발생했습니다: " + e.getMessage(), state,
-						null));
+						null, null));
 		}
 	}
 
 	/**
-	 * 연동 상태 확인
+	 * 연동 상태 확인 (워크스페이스 목록 포함)
 	 */
 	@GetMapping("/status")
 	public ResponseEntity<NotionOAuthResponse.StatusResponse> status(@RequestParam("user_id") String userId) {
 		boolean connected = oAuthService.isConnected(userId);
-		return ResponseEntity.ok(new NotionOAuthResponse.StatusResponse(userId, connected));
+		List<WorkspaceInfo> workspaces = oAuthService.getConnectedWorkspaces(userId);
+		return ResponseEntity.ok(new NotionOAuthResponse.StatusResponse(userId, connected, workspaces));
 	}
 
 	/**
-	 * 연동 해제
+	 * 연동 해제 (workspace_id 지정 시 해당 워크스페이스만, 미지정 시 전체 해제)
 	 */
 	@DeleteMapping("/disconnect")
-	public ResponseEntity<NotionOAuthResponse.DisconnectResponse> disconnect(@RequestParam("user_id") String userId) {
-		oAuthService.disconnect(userId);
-		log.info("Notion 연동 해제: userId={}", userId);
-		return ResponseEntity.ok(new NotionOAuthResponse.DisconnectResponse(userId, "Notion 연동이 해제되었습니다."));
+	public ResponseEntity<NotionOAuthResponse.DisconnectResponse> disconnect(
+		@RequestParam("user_id") String userId,
+		@RequestParam(value = "workspace_id", required = false) String workspaceId
+	) {
+		if (workspaceId != null && !workspaceId.isBlank()) {
+			oAuthService.disconnect(userId, workspaceId);
+			log.info("Notion 워크스페이스 연동 해제: userId={}, workspaceId={}", userId, workspaceId);
+			return ResponseEntity.ok(new NotionOAuthResponse.DisconnectResponse(
+				userId, "Notion 워크스페이스 연동이 해제되었습니다.", workspaceId));
+		} else {
+			oAuthService.disconnectAll(userId);
+			log.info("Notion 전체 연동 해제: userId={}", userId);
+			return ResponseEntity.ok(new NotionOAuthResponse.DisconnectResponse(
+				userId, "Notion 전체 연동이 해제되었습니다.", null));
+		}
 	}
 }

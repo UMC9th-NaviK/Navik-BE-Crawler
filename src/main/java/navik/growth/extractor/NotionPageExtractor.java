@@ -13,6 +13,8 @@ import navik.growth.extractor.dto.NotionApiResponses.BlockList;
 import navik.growth.extractor.dto.NotionApiResponses.Page;
 import navik.growth.extractor.dto.NotionApiResponses.RichText;
 import navik.growth.notion.api.NotionApiClient;
+import navik.growth.notion.dto.NotionWorkspaceToken;
+import navik.growth.notion.exception.NotionApiException;
 import navik.growth.notion.service.NotionOAuthService;
 
 /**
@@ -39,34 +41,57 @@ public class NotionPageExtractor {
 	 * @return 마크다운 형식의 컨텐츠
 	 */
 	public String extractPage(String userId, String url) {
+		log.info("노션 페이지 추출 시작: userId={}, url={}", userId, url);
+
+		// 1. 사용자의 모든 워크스페이스 토큰 조회
+		List<NotionWorkspaceToken> tokens = oAuthService.getAllWorkspaceTokens(userId);
+
+		// 2. URL에서 페이지 ID 추출
+		String pageId = extractPageId(url);
+		log.debug("추출된 페이지 ID: {}", pageId);
+
+		// 3. 토큰이 1개면 바로 사용 (fast path)
+		if (tokens.size() == 1) {
+			return extractPageWithToken(tokens.get(0).accessToken(), pageId, url);
+		}
+
+		// 4. 여러 토큰이면 각각 시도하여 성공하는 토큰 사용
+		for (NotionWorkspaceToken token : tokens) {
+			try {
+				Page page = notionApiClient.getPage(token.accessToken(), pageId);
+				log.info("워크스페이스 매칭 성공: workspaceId={}", token.workspaceId());
+				return extractPageContent(token.accessToken(), pageId, page, url);
+			} catch (Exception e) {
+				log.debug("워크스페이스 접근 실패 (다음 시도): workspaceId={}, error={}",
+					token.workspaceId(), e.getMessage());
+			}
+		}
+
+		// 5. 모든 토큰 실패
+		throw new NotionApiException(
+			"연결된 워크스페이스 중 해당 페이지에 접근 가능한 것이 없습니다: " + url);
+	}
+
+	private String extractPageWithToken(String accessToken, String pageId, String url) {
 		try {
-			log.info("노션 페이지 추출 시작: userId={}, url={}", userId, url);
-
-			// 1. 사용자 토큰 조회
-			String accessToken = oAuthService.getAccessToken(userId);
-
-			// 2. URL에서 페이지 ID 추출
-			String pageId = extractPageId(url);
-			log.debug("추출된 페이지 ID: {}", pageId);
-
-			// 3. 페이지 메타데이터 조회 (제목)
 			Page page = notionApiClient.getPage(accessToken, pageId);
-			String title = extractTitle(page);
-
-			// 4. 블록 내용 조회
-			StringBuilder content = new StringBuilder();
-			content.append("# ").append(title).append("\n\n");
-
-			// 5. 재귀적으로 모든 블록 추출
-			extractBlocks(accessToken, pageId, content, 0);
-
-			log.info("노션 페이지 추출 완료: {} (길이: {}자)", url, content.length());
-			return content.toString();
-
+			return extractPageContent(accessToken, pageId, page, url);
 		} catch (Exception e) {
-			log.error("노션 페이지 추출 실패: userId={}, url={}", userId, url, e);
+			log.error("노션 페이지 추출 실패: url={}", url, e);
 			throw new RuntimeException("노션 페이지 추출 실패: " + url, e);
 		}
+	}
+
+	private String extractPageContent(String accessToken, String pageId, Page page, String url) {
+		String title = extractTitle(page);
+
+		StringBuilder content = new StringBuilder();
+		content.append("# ").append(title).append("\n\n");
+
+		extractBlocks(accessToken, pageId, content, 0);
+
+		log.info("노션 페이지 추출 완료: {} (길이: {}자)", url, content.length());
+		return content.toString();
 	}
 
 	/**
