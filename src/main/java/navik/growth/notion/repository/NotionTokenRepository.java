@@ -1,4 +1,4 @@
-package navik.growth.repository;
+package navik.growth.notion.repository;
 
 import java.util.Optional;
 

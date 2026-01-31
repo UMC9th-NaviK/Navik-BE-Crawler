@@ -1,4 +1,4 @@
-package navik.growth.config;
+package navik.growth.notion.config;
 
 import java.time.Duration;
 

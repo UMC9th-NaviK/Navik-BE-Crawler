@@ -1,4 +1,4 @@
-package navik.growth.extractor.notion;
+package navik.growth.extractor.dto;
 
 import java.util.List;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class NotionApiResponse {
+public class NotionApiResponses {
 
 	/**
 	 * 페이지 조회 응답

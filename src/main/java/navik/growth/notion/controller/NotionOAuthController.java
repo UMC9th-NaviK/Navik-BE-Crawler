@@ -1,4 +1,4 @@
-package navik.growth.controller;
+package navik.growth.notion.controller;
 
 import java.net.URI;
 
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.growth.service.NotionOAuthService;
-import navik.growth.service.NotionOAuthService.TokenResponse;
+import navik.growth.notion.dto.NotionOAuthResponse;
+import navik.growth.notion.service.NotionOAuthService;
 
 @Slf4j
 @RestController
@@ -49,7 +49,7 @@ public class NotionOAuthController {
 	 * @param error 에러 코드 (사용자가 거부한 경우)
 	 */
 	@GetMapping("/callback")
-	public ResponseEntity<CallbackResponse> callback(
+	public ResponseEntity<NotionOAuthResponse.CallbackResponse> callback(
 		@RequestParam(value = "code", required = false) String code,
 		@RequestParam(value = "state", required = false) String state,
 		@RequestParam(value = "error", required = false) String error
@@ -58,28 +58,28 @@ public class NotionOAuthController {
 		if (error != null) {
 			log.warn("Notion OAuth 거부됨: error={}, userId={}", error, state);
 			return ResponseEntity.badRequest()
-				.body(new CallbackResponse(false, "Notion 연동이 거부되었습니다.", state, null));
+				.body(new NotionOAuthResponse.CallbackResponse(false, "Notion 연동이 거부되었습니다.", state, null));
 		}
 
 		// state(userId) 검증
 		if (state == null || state.isBlank()) {
 			log.error("Notion OAuth 콜백 오류: state 누락");
 			return ResponseEntity.badRequest()
-				.body(new CallbackResponse(false, "잘못된 요청입니다. (state 누락)", null, null));
+				.body(new NotionOAuthResponse.CallbackResponse(false, "잘못된 요청입니다. (state 누락)", null, null));
 		}
 
 		try {
 			log.info("Notion OAuth 콜백 수신: userId={}", state);
 
 			// Authorization Code → Access Token 교환
-			TokenResponse tokenResponse = oAuthService.exchangeCodeForToken(code);
+			NotionOAuthResponse.TokenResponse tokenResponse = oAuthService.exchangeCodeForToken(code);
 
 			// 토큰 저장
 			oAuthService.saveToken(state, tokenResponse.accessToken());
 
 			log.info("Notion 연동 완료: userId={}, workspace={}", state, tokenResponse.workspaceName());
 
-			return ResponseEntity.ok(new CallbackResponse(
+			return ResponseEntity.ok(new NotionOAuthResponse.CallbackResponse(
 				true,
 				"Notion 연동이 완료되었습니다!",
 				state,
@@ -89,7 +89,9 @@ public class NotionOAuthController {
 		} catch (Exception e) {
 			log.error("Notion OAuth 처리 실패: userId={}", state, e);
 			return ResponseEntity.internalServerError()
-				.body(new CallbackResponse(false, "Notion 연동 중 오류가 발생했습니다: " + e.getMessage(), state, null));
+				.body(
+					new NotionOAuthResponse.CallbackResponse(false, "Notion 연동 중 오류가 발생했습니다: " + e.getMessage(), state,
+						null));
 		}
 	}
 
@@ -97,39 +99,18 @@ public class NotionOAuthController {
 	 * 연동 상태 확인
 	 */
 	@GetMapping("/status")
-	public ResponseEntity<StatusResponse> status(@RequestParam("user_id") String userId) {
+	public ResponseEntity<NotionOAuthResponse.StatusResponse> status(@RequestParam("user_id") String userId) {
 		boolean connected = oAuthService.isConnected(userId);
-		return ResponseEntity.ok(new StatusResponse(userId, connected));
+		return ResponseEntity.ok(new NotionOAuthResponse.StatusResponse(userId, connected));
 	}
 
 	/**
 	 * 연동 해제
 	 */
 	@DeleteMapping("/disconnect")
-	public ResponseEntity<DisconnectResponse> disconnect(@RequestParam("user_id") String userId) {
+	public ResponseEntity<NotionOAuthResponse.DisconnectResponse> disconnect(@RequestParam("user_id") String userId) {
 		oAuthService.disconnect(userId);
 		log.info("Notion 연동 해제: userId={}", userId);
-		return ResponseEntity.ok(new DisconnectResponse(userId, "Notion 연동이 해제되었습니다."));
-	}
-
-	// Response DTOs
-	public record CallbackResponse(
-		boolean success,
-		String message,
-		String userId,
-		String workspaceName
-	) {
-	}
-
-	public record StatusResponse(
-		String userId,
-		boolean connected
-	) {
-	}
-
-	public record DisconnectResponse(
-		String userId,
-		String message
-	) {
+		return ResponseEntity.ok(new NotionOAuthResponse.DisconnectResponse(userId, "Notion 연동이 해제되었습니다."));
 	}
 }

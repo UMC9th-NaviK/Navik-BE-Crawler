@@ -1,4 +1,4 @@
-package navik.growth.extractor.notion;
+package navik.growth.notion.api;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -8,10 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
-import navik.growth.config.NotionOAuthProperties;
-import navik.growth.extractor.notion.NotionApiResponse.Block;
-import navik.growth.extractor.notion.NotionApiResponse.BlockList;
-import navik.growth.extractor.notion.NotionApiResponse.Page;
+import navik.growth.extractor.dto.NotionApiResponses.Block;
+import navik.growth.extractor.dto.NotionApiResponses.BlockList;
+import navik.growth.extractor.dto.NotionApiResponses.Page;
+import navik.growth.notion.config.NotionOAuthProperties;
+import navik.growth.notion.exception.NotionApiException;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -119,11 +120,5 @@ public class NotionApiClient {
 			.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
 			.defaultHeader("Notion-Version", apiVersion)
 			.build();
-	}
-
-	public static class NotionApiException extends RuntimeException {
-		public NotionApiException(String message) {
-			super(message);
-		}
 	}
 }

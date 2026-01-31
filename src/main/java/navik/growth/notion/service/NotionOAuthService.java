@@ -1,4 +1,4 @@
-package navik.growth.service;
+package navik.growth.notion.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -11,12 +11,13 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.extern.slf4j.Slf4j;
-import navik.growth.config.NotionOAuthProperties;
-import navik.growth.repository.NotionTokenRepository;
+import navik.growth.notion.config.NotionOAuthProperties;
+import navik.growth.notion.dto.NotionOAuthRequest;
+import navik.growth.notion.dto.NotionOAuthResponse;
+import navik.growth.notion.dto.NotionOAuthResponse.TokenResponse;
+import navik.growth.notion.exception.NotionNotConnectedException;
+import navik.growth.notion.repository.NotionTokenRepository;
 
 @Slf4j
 @Service
@@ -65,11 +66,11 @@ public class NotionOAuthService {
 		String encodedCredentials = Base64.getEncoder()
 			.encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 
-		TokenResponse response = webClient.post()
+		NotionOAuthResponse.TokenResponse response = webClient.post()
 			.uri(NOTION_OAUTH_TOKEN_URL)
 			.header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
 			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-			.body(BodyInserters.fromValue(new TokenRequest(
+			.body(BodyInserters.fromValue(new NotionOAuthRequest.TokenRequest(
 				"authorization_code",
 				code,
 				properties.oauth().redirectUri()
@@ -113,46 +114,5 @@ public class NotionOAuthService {
 	 */
 	public void disconnect(String userId) {
 		tokenRepository.deleteByUserId(userId);
-	}
-
-	// Request/Response DTOs
-	public record TokenRequest(
-		@JsonProperty("grant_type") String grantType,
-		String code,
-		@JsonProperty("redirect_uri") String redirectUri
-	) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public record TokenResponse(
-		@JsonProperty("access_token") String accessToken,
-		@JsonProperty("token_type") String tokenType,
-		@JsonProperty("bot_id") String botId,
-		@JsonProperty("workspace_id") String workspaceId,
-		@JsonProperty("workspace_name") String workspaceName,
-		@JsonProperty("workspace_icon") String workspaceIcon,
-		Owner owner
-	) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public record Owner(
-		String type,
-		User user
-	) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public record User(
-		String id,
-		String name,
-		@JsonProperty("avatar_url") String avatarUrl
-	) {
-	}
-
-	public static class NotionNotConnectedException extends RuntimeException {
-		public NotionNotConnectedException(String message) {
-			super(message);
-		}
 	}
 }

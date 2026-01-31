@@ -4,10 +4,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.extern.slf4j.Slf4j;
+import navik.growth.extractor.dto.GitHubPRRequestResponse.GitHubPR;
+import navik.growth.extractor.dto.GitHubPRRequestResponse.GitHubPRFile;
 
 /**
  * GitHub Public PR 정보를 추출하는 컴포넌트
@@ -137,39 +136,5 @@ public class GitHubPRExtractor {
 
 	// Inner Records
 	private record PRInfo(String owner, String repo, String number) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	private record GitHubPR(
-		String title,
-		String body,
-		String state,
-		User user,
-		@JsonProperty("created_at") String createdAt,
-		int additions,
-		int deletions,
-		int commits,
-		@JsonProperty("changed_files") int changedFiles,
-		Branch base,
-		Branch head
-	) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	private record User(String login) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	private record Branch(String ref) {
-	}
-
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	private record GitHubPRFile(
-		String filename,
-		String status,
-		int additions,
-		int deletions,
-		String patch
-	) {
 	}
 }

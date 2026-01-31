@@ -8,12 +8,12 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import navik.growth.extractor.notion.NotionApiClient;
-import navik.growth.extractor.notion.NotionApiResponse.Block;
-import navik.growth.extractor.notion.NotionApiResponse.BlockList;
-import navik.growth.extractor.notion.NotionApiResponse.Page;
-import navik.growth.extractor.notion.NotionApiResponse.RichText;
-import navik.growth.service.NotionOAuthService;
+import navik.growth.extractor.dto.NotionApiResponses.Block;
+import navik.growth.extractor.dto.NotionApiResponses.BlockList;
+import navik.growth.extractor.dto.NotionApiResponses.Page;
+import navik.growth.extractor.dto.NotionApiResponses.RichText;
+import navik.growth.notion.api.NotionApiClient;
+import navik.growth.notion.service.NotionOAuthService;
 
 /**
  * Notion API를 통해 페이지 컨텐츠를 추출하는 컴포넌트
@@ -213,7 +213,7 @@ public class NotionPageExtractor {
 					}
 				}
 				if (!imageUrl.isEmpty()) {
-					content.append(indent).append("![image](").append(imageUrl).append(")\n\n");
+					content.append(indent).append("![").append("image").append("](").append(imageUrl).append(")\n\n");
 				}
 			}
 			case "child_page" -> {
@@ -239,7 +239,8 @@ public class NotionPageExtractor {
 		StringBuilder result = new StringBuilder();
 		for (RichText rt : richTexts) {
 			String text = rt.plainText();
-			if (text == null) continue;
+			if (text == null)
+				continue;
 
 			// 서식 적용
 			if (rt.annotations() != null) {
