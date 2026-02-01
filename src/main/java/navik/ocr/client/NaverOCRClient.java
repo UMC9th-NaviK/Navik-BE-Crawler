@@ -105,7 +105,8 @@ public class NaverOCRClient implements OCRClient {
 			.block();
 
 		// 4. 텍스트 추출
-		String result = responseBody.getImages().stream()
+		String result = responseBody.getImages()
+			.stream()
 			.filter(img -> "SUCCESS".equals(img.getInferResult()))
 			.flatMap(img -> img.getFields().stream())
 			.map(NaverOCRResponseDTO.Field::getInferText)
@@ -113,6 +114,25 @@ public class NaverOCRClient implements OCRClient {
 
 		// 5. OCR 결과 반환
 		return result.trim();
+	}
+
+	/**
+	 * PDF URL로부터 텍스트를 추출합니다.
+	 * 이미지와 달리 메타데이터(width/height) 검증을 생략하고, Naver OCR API에 직접 요청합니다.
+	 */
+	@Override
+	public String extractFromPdfUrl(String pdfUrl) {
+		if (pdfUrl == null || pdfUrl.isBlank()) {
+			log.error("[NaverOcrService] PDF URL이 null이거나 비어있습니다.");
+			return "";
+		}
+
+		try {
+			return requestApi(pdfUrl, "pdf");
+		} catch (Exception e) {
+			log.error("[NaverOcrService] PDF OCR 처리에 실패하였습니다: {}", e.getMessage(), e);
+			return "";
+		}
 	}
 
 	private boolean isSupportedExtension(String extension) {
