@@ -27,8 +27,7 @@ import navik.growth.notion.service.NotionOAuthService;
 public class NotionPageExtractor {
 
 	private static final Pattern PAGE_ID_PATTERN = Pattern.compile(
-		"([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
-	);
+			"([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$");
 
 	private final NotionApiClient notionApiClient;
 	private final NotionOAuthService oAuthService;
@@ -40,7 +39,7 @@ public class NotionPageExtractor {
 	 * @param url    노션 페이지 URL
 	 * @return 마크다운 형식의 컨텐츠
 	 */
-	public String extractPage(String userId, String url) {
+	public String extractPage(Long userId, String url) {
 		log.info("노션 페이지 추출 시작: userId={}, url={}", userId, url);
 
 		// 1. 사용자의 모든 워크스페이스 토큰 조회
@@ -63,13 +62,13 @@ public class NotionPageExtractor {
 				return extractPageContent(token.accessToken(), pageId, page, url);
 			} catch (Exception e) {
 				log.debug("워크스페이스 접근 실패 (다음 시도): workspaceId={}, error={}",
-					token.workspaceId(), e.getMessage());
+						token.workspaceId(), e.getMessage());
 			}
 		}
 
 		// 5. 모든 토큰 실패
 		throw new NotionApiException(
-			"연결된 워크스페이스 중 해당 페이지에 접근 가능한 것이 없습니다: " + url);
+				"연결된 워크스페이스 중 해당 페이지에 접근 가능한 것이 없습니다: " + url);
 	}
 
 	private String extractPageWithToken(String accessToken, String pageId, String url) {
@@ -108,10 +107,10 @@ public class NotionPageExtractor {
 			// 하이픈 없는 형식을 UUID 형식으로 변환
 			if (!pageId.contains("-") && pageId.length() == 32) {
 				return pageId.substring(0, 8) + "-" +
-					pageId.substring(8, 12) + "-" +
-					pageId.substring(12, 16) + "-" +
-					pageId.substring(16, 20) + "-" +
-					pageId.substring(20);
+						pageId.substring(8, 12) + "-" +
+						pageId.substring(12, 16) + "-" +
+						pageId.substring(16, 20) + "-" +
+						pageId.substring(20);
 			}
 			return pageId;
 		}
@@ -127,16 +126,16 @@ public class NotionPageExtractor {
 			var titleProp = page.properties().get("title");
 			if (titleProp != null && titleProp.title() != null && !titleProp.title().isEmpty()) {
 				return titleProp.title().stream()
-					.map(RichText::plainText)
-					.reduce("", String::concat);
+						.map(RichText::plainText)
+						.reduce("", String::concat);
 			}
 
 			// Name 프로퍼티도 확인 (데이터베이스 페이지의 경우)
 			var nameProp = page.properties().get("Name");
 			if (nameProp != null && nameProp.title() != null && !nameProp.title().isEmpty()) {
 				return nameProp.title().stream()
-					.map(RichText::plainText)
-					.reduce("", String::concat);
+						.map(RichText::plainText)
+						.reduce("", String::concat);
 			}
 		}
 		return "제목 없음";
@@ -216,8 +215,8 @@ public class NotionPageExtractor {
 			case "callout" -> {
 				String text = extractRichText(block.callout().richText());
 				String emoji = block.callout().icon() != null && block.callout().icon().emoji() != null
-					? block.callout().icon().emoji() + " "
-					: "";
+						? block.callout().icon().emoji() + " "
+						: "";
 				content.append(indent).append("> ").append(emoji).append(text).append("\n\n");
 			}
 			case "code" -> {
