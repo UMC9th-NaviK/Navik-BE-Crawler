@@ -41,7 +41,6 @@ public class GrowthAnalysisService {
 	private final ContentTypeHelper contentTypeHelper;
 	private final PromptBuilder promptBuilder;
 	private final ResponseParser responseParser;
-	private final ObjectMapper objectMapper;
 
 	/**
 	 * 성장 기록 분석 수행
@@ -66,7 +65,7 @@ public class GrowthAnalysisService {
 			.system(systemPrompt) // 페르소나
 			.user(userPrompt) // 컨텍스트
 			.options(ChatOptions.builder()
-				.temperature(0.3)
+				.temperature(0.0)
 				.build()
 			)
 			.toolNames(toolNames.toArray(String[]::new))

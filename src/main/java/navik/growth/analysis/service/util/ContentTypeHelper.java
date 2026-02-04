@@ -33,7 +33,7 @@ public class ContentTypeHelper {
 	 * - GitHub PR 링크: + fetchGitHubPR
 	 */
 	public List<String> buildToolNames(ContentType contentType) {
-		List<String> tools = new ArrayList<>(List.of("retrieveKpiCards", "retrieveLevelCriteria"));
+		List<String> tools = new ArrayList<>(List.of("retrieveKpiCards", "retrieveLevelCriteria", "retrieveJobScope"));
 		switch (contentType) {
 			case NOTION_LINK -> tools.add("fetchNotionPage");
 			case GITHUB_PR_LINK -> tools.add("fetchGitHubPR");

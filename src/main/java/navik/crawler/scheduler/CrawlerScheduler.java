@@ -14,7 +14,6 @@ import navik.crawler.service.CrawlerService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("prod")
 public class CrawlerScheduler {
 
 	private final ThreadPoolTaskScheduler scheduler;

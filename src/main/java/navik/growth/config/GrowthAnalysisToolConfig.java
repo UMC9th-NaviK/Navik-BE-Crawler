@@ -10,8 +10,10 @@ import navik.growth.extractor.GitHubPRExtractor;
 import navik.growth.extractor.NotionPageExtractor;
 import navik.growth.tool.dto.ToolRequests.GitHubPRRequest;
 import navik.growth.tool.dto.ToolRequests.KpiRetrievalRequest;
+import navik.growth.tool.dto.ToolRequests.JobScopeRequest;
 import navik.growth.tool.dto.ToolRequests.LevelCriteriaRequest;
 import navik.growth.tool.dto.ToolRequests.NotionPageRequest;
+import navik.growth.tool.service.JobScopeService;
 import navik.growth.tool.service.KpiCardService;
 import navik.growth.tool.service.LevelCriteriaService;
 
@@ -26,7 +28,7 @@ public class GrowthAnalysisToolConfig {
 	 * 사용자별 OAuth 토큰으로 접근
 	 */
 	@Bean
-	@Description("노션 페이지의 전체 컨텐츠를 추출합니다. 사용자가 Notion OAuth로 연동한 페이지만 접근 가능합니다. userId와 노션 URL을 입력받아 마크다운 형식으로 내용을 반환합니다.")
+	@Description("노션 페이지의 전체 컨텐츠를 추출합니다. 사용자가 Notion OAuth로 연동한 페이지만 접근 가능하며, 실패 시 'Error: '로 시작하는 메시지를 반환합니다. userId와 노션 URL을 입력받아 마크다운 형식으로 내용을 반환합니다.")
 	public Function<NotionPageRequest, String> fetchNotionPage(NotionPageExtractor extractor) {
 		return request -> {
 			try {
@@ -41,7 +43,7 @@ public class GrowthAnalysisToolConfig {
 	 * GitHub Public PR의 변경사항과 설명을 추출하는 Tool
 	 */
 	@Bean
-	@Description("GitHub Public PR의 변경사항과 설명을 추출합니다. GitHub PR URL을 입력받아 PR 정보를 마크다운 형식으로 반환합니다.")
+	@Description("GitHub Public PR의 변경사항과 설명을 추출합니다. 실패 시 'Error: '로 시작하는 메시지를 반환합니다. GitHub PR URL을 입력받아 PR 정보를 마크다운 형식으로 반환합니다.")
 	public Function<GitHubPRRequest, String> fetchGitHubPR(GitHubPRExtractor extractor) {
 		return request -> {
 			try {
@@ -80,6 +82,22 @@ public class GrowthAnalysisToolConfig {
 				return levelCriteriaService.findCriteria(request.jobId(), request.levelValue());
 			} catch (Exception e) {
 				return "Error: 레벨 가이드라인 조회에 실패했습니다. " + e.getMessage();
+			}
+		};
+	}
+
+	/**
+	 * 직무 ID로 해당 직무의 핵심 책임과 명시적 제외 항목을 조회하는 Tool
+	 * AI가 직무와 무관한 활동에 점수를 부여하지 않도록 판단 기준을 제공
+	 */
+	@Bean
+	@Description("직무 ID로 해당 직무의 핵심 책임(coreResponsibilities)과 명시적 제외 항목(explicitlyExcluded)을 조회합니다. AI가 직무와 무관한 활동에 점수를 부여하지 않도록 판단 기준을 제공합니다.")
+	public Function<JobScopeRequest, String> retrieveJobScope(JobScopeService jobScopeService) {
+		return request -> {
+			try {
+				return jobScopeService.findJobScopeByJobId(request.jobId());
+			} catch (Exception e) {
+				return "Error: 직무 범위 조회에 실패했습니다. " + e.getMessage();
 			}
 		};
 	}
