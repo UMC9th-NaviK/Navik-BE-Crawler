@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import navik.ai.client.EmbeddingClient;
 import navik.growth.analysis.dto.AnalysisResponse;
 
 @Slf4j
@@ -18,6 +19,7 @@ import navik.growth.analysis.dto.AnalysisResponse;
 public class ResponseParser {
 
     private final ObjectMapper objectMapper;
+    private final EmbeddingClient embeddingClient;
 
     /**
 	 * AI 응답 JSON을 GrowthAnalysisResponse로 파싱
@@ -41,11 +43,13 @@ public class ResponseParser {
 			String responseContent = getTextValue(node, "content", "");
 
 			List<AnalysisResponse.GrowthAnalysisResponse.KpiDelta> kpis = parseKpiDeltas(node);
+			List<AnalysisResponse.GrowthAnalysisResponse.Ability> abilities = parseAbilities(node);
 
 			return AnalysisResponse.GrowthAnalysisResponse.builder()
 				.title(title)
 				.content(responseContent)
 				.kpis(kpis)
+				.abilities(abilities)
 				.build();
 
 		} catch (Exception e) {
@@ -67,6 +71,20 @@ public class ResponseParser {
 		}
 
 		return kpis;
+	}
+
+	private List<AnalysisResponse.GrowthAnalysisResponse.Ability> parseAbilities(JsonNode node) {
+		List<AnalysisResponse.GrowthAnalysisResponse.Ability> abilities = new ArrayList<>();
+		JsonNode abilitiesNode = node.get("abilities");
+
+		if (abilitiesNode != null && abilitiesNode.isArray()) {
+			for (JsonNode abilityNode : abilitiesNode) {
+				String abilityContent = abilityNode.asText();
+				abilities.add(new AnalysisResponse.GrowthAnalysisResponse.Ability(abilityContent, embeddingClient.embed(abilityContent)));
+			}
+		}
+
+		return abilities;
 	}
 
 	private String extractJsonFromContent(String content) {
