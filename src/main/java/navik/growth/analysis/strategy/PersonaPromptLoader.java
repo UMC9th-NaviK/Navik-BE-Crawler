@@ -30,14 +30,17 @@ public class PersonaPromptLoader {
         - If a KPI card is not relevant to the analyzed activity, set its "delta" to 0. All 10 KPIs must be present in the array.
 
         {
-          "title": "string", // A concise one-line summary. For irrelevant activities, use "직무와 무관한 활동".
+          "title": "string", // A concise one-line summary. For irrelevant activities, use "Error: 직무와 무관한 활동".
           "content": "string", // For relevant activities, format as: "활동 요약. (잘한 점). (개선점 및 학습 제안).". For irrelevant ones, explain why (e.g., "디자이너 직무와 관련 없는 백엔드 코드 내용입니다."). Max 150 characters.
           "kpis": [ // An array of objects. MUST contain all 10 KPIs for the job.
             {
               "kpiCardId": "number", // The ID of the relevant KPI card.
               "delta": "number" // The score. Set to 0 if not relevant.
             }
-          ]
+          ],
+          "abilities": [ // An array of strings. Each string is a one-sentence description of a specific skill demonstrated in this activity.
+            "string" // e.g., "OAuth를 이용한 소셜로그인 구현 경험", "Spring Batch Chunk 사이즈 튜닝을 통한 성능 최적화 경험"
+          ] // Include only abilities that justify non-zero KPI scores. For irrelevant activities, this array should be empty.
         }
 
         [Example Response for Relevant Activity]
@@ -48,6 +51,10 @@ public class PersonaPromptLoader {
           "kpis": [
             { "kpiCardId": 1, "delta": 0 }, { "kpiCardId": 2, "delta": 0 }, { "kpiCardId": 3, "delta": 5 }, { "kpiCardId": 4, "delta": 0 }, { "kpiCardId": 5, "delta": 0 },
             { "kpiCardId": 6, "delta": 15 }, { "kpiCardId": 7, "delta": 0 }, { "kpiCardId": 8, "delta": 0 }, { "kpiCardId": 9, "delta": 0 }, { "kpiCardId": 10, "delta": 0 }
+          ],
+          "abilities": [
+            "Spring Batch Chunk 사이즈 튜닝을 통한 배치 성능 최적화 경험",
+            "대용량 데이터 처리 시 병목 구간 분석 및 해결 경험"
           ]
         }
 
@@ -59,7 +66,8 @@ public class PersonaPromptLoader {
           "kpis": [
             { "kpiCardId": 21, "delta": 0 }, { "kpiCardId": 22, "delta": 0 }, { "kpiCardId": 23, "delta": 0 }, { "kpiCardId": 24, "delta": 0 }, { "kpiCardId": 25, "delta": 0 },
             { "kpiCardId": 26, "delta": 0 }, { "kpiCardId": 27, "delta": 0 }, { "kpiCardId": 28, "delta": 0 }, { "kpiCardId": 29, "delta": 0 }, { "kpiCardId": 30, "delta": 0 }
-          ]
+          ],
+          "abilities": []
         }
         """;
 
