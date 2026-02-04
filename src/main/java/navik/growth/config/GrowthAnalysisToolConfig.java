@@ -30,6 +30,10 @@ public class GrowthAnalysisToolConfig {
 			try {
 				return extractor.extractPage(request.userId(), request.url());
 			} catch (Exception e) {
+				// 에러 로그 추가
+				org.slf4j.LoggerFactory.getLogger(GrowthAnalysisToolConfig.class)
+						.error("Notion Page Extraction Failed. userId={}, url={}, error={}",
+								request.userId(), request.url(), e.getMessage(), e);
 				return "Error: 노션 페이지를 가져오는데 실패했습니다. Notion 연동 여부를 확인하세요. " + e.getMessage();
 			}
 		};
