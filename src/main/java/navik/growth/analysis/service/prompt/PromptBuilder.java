@@ -6,12 +6,17 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import navik.ai.util.PromptLoader;
 import navik.growth.analysis.dto.AnalysisRequest.GrowthAnalysisRequest;
 import navik.growth.analysis.service.util.ContentTypeHelper.ContentType;
 
 @Component
 @RequiredArgsConstructor
 public class PromptBuilder {
+
+	private final PromptLoader promptLoader;
+
+	private static final String USER_PROMPT_TEMPLATE_PATH = "classpath:prompts/growth/templates/user-prompt-template.txt";
 
     /**
 	 * 사용자 프롬프트 구성
@@ -29,37 +34,16 @@ public class PromptBuilder {
 		// 2. 컨텐츠 타입별 분석 대상 섹션 생성
 		String contentSection = buildContentSection(request, contentType);
 
-		// 3. 구조화된 프롬프트 조립
-		return String.format("""
-            [1. Analysis Target]
-            %s
+		// 3. 템플릿 로드 및 변수 치환
+		String template = promptLoader.loadPrompt(USER_PROMPT_TEMPLATE_PATH);
 
-            [2. User Context (For Tool Usage)]
-            - Job ID: %d (Use for 'retrieveKpiCards' and 'retrieveLevelCriteria')
-            - Current Level: %d (Use for 'retrieveLevelCriteria')
-
-            [3. Background Info]
-            - Resume Summary: %s
-
-            [4. KPI Saturation Data (CRITICAL)]
-            * This map shows how many times specific KPI IDs were updated recently.
-            * Format: {\"KPI_ID\": count}
-            * Data: %s
-
-            [5. Instructions for AI]
-            1. Call 'retrieveKpiCards' with the Job ID.
-            2. Call 'retrieveLevelCriteria' with the Job ID and Current Level.
-            %s
-            4. **CHECK the 'KPI Saturation Data' above.**
-               - If the matched KPI ID has a high count (3+), apply the penalty rule defined in the System Prompt.
-            """,
-			contentSection,
-			request.jobId(),
-			request.levelValue(),
-			request.context().resumeText(),
-			saturationMap.toString(),
-			buildContentInstruction(contentType)
-		);
+		return template
+			.replace("{CONTENT_SECTION}", contentSection)
+			.replace("{JOB_ID}", String.valueOf(request.jobId()))
+			.replace("{LEVEL_VALUE}", String.valueOf(request.levelValue()))
+			.replace("{RESUME_TEXT}", request.context().resumeText())
+			.replace("{SATURATION_MAP}", saturationMap.toString())
+			.replace("{CONTENT_INSTRUCTION}", buildContentInstruction(contentType));
 	}
 
 	/**
