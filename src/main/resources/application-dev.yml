@@ -24,5 +24,19 @@ spring:
 
 naver:
   ocr:
-    url: ${NAVER_OCR_URL:naver}
-    secretKey: ${NAVER_OCR_SECRET_KEY:good}
+    url: ${NAVER_OCR_URL}
+    secretKey: ${NAVER_OCR_SECRET_KEY}
+
+# Growth Analysis 설정
+growth:
+  github:
+    enabled: true
+    timeout: 10000  # 10초
+
+# Notion OAuth 설정
+notion:
+  api-version: "2022-06-28"
+  oauth:
+    client-id: ${NOTION_OAUTH_CLIENT_ID}
+    client-secret: ${NOTION_OAUTH_CLIENT_SECRET}
+    redirect-uri: ${NOTION_OAUTH_REDIRECT_URI:http://localhost:8080/api/notion/oauth/callback}
