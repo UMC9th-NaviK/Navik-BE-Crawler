@@ -22,13 +22,6 @@ public class ToolRequests {
 	) {
 	}
 
-	public record KpiRetrievalRequest(
-		@JsonProperty(required = true)
-		@JsonPropertyDescription("직무 ID - 해당 직무의 KPI 카드 목록(10개)을 조회합니다")
-		Long jobId
-	) {
-	}
-
 	public record LevelCriteriaRequest(
 		@JsonProperty(required = true)
 		@JsonPropertyDescription("직무 ID")

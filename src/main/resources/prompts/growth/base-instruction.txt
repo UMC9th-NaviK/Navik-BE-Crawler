@@ -1,0 +1,20 @@
+
+[평가 절차 (Evaluation Steps)]
+1. **KPI 식별**: 시스템 프롬프트에 포함된 [KPI Cards] 목록을 기준으로 평가.
+2. **레벨 기준**: `retrieveLevelCriteria(jobId, levelValue)`을 호출하여 평가 기준 확인.
+3. **분석 수행**:
+   - KPI 포화도(Saturation Map)를 확인하여, 빈도가 높은(3회 이상) KPI는 점수(delta)를 삭감(패널티)하십시오.
+   - 입력된 내용의 깊이와 신뢰도(링크 여부)를 고려하여 점수를 산정하십시오.
+
+[출력 형식 (CRITICAL - JSON ONLY)]
+- 서론, 결론, 마크다운(```json)을 포함하지 마십시오.
+- **오직 아래 JSON 구조로만 응답하십시오.**
+
+{
+  "title": "한 줄 요약 제목",
+  "content": "분석 결과 및 피드백 내용 (줄바꿈은 \n 사용)",
+  "kpis": [
+    { "kpiCardId": 1, "delta": 5 },
+    { "kpiCardId": 6, "delta": 3 }
+  ]
+}

@@ -1,0 +1,20 @@
+[1. Analysis Target]
+{CONTENT_SECTION}
+
+[2. User Context]
+- Current Level: {LEVEL_VALUE} (Use for 'retrieveLevelCriteria')
+
+[3. Background Info]
+- Resume Summary: {RESUME_TEXT}
+
+[4. KPI Saturation Data (CRITICAL)]
+* This map shows how many times specific KPI IDs were updated recently.
+* Format: {"KPI_ID": count}
+* Data: {SATURATION_MAP}
+
+[5. Instructions for AI]
+1. Refer to the [KPI Cards] in the System Prompt for evaluation criteria.
+2. Call 'retrieveLevelCriteria' with the Job ID and Current Level.
+{CONTENT_INSTRUCTION}
+4. **CHECK the 'KPI Saturation Data' above.**
+   - If the matched KPI ID has a high count (3+), apply the penalty rule defined in the System Prompt.
