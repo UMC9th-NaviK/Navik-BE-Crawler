@@ -28,12 +28,12 @@ public class ContentTypeHelper {
 
 	/**
 	 * 컨텐츠 타입에 따라 필요한 Tool 목록 구성
-	 * - 공통: retrieveKpiCards, retrieveLevelCriteria
+	 * - 공통: retrieveLevelCriteria
 	 * - Notion 링크: + fetchNotionPage
 	 * - GitHub PR 링크: + fetchGitHubPR
 	 */
 	public List<String> buildToolNames(ContentType contentType) {
-		List<String> tools = new ArrayList<>(List.of("retrieveKpiCards", "retrieveLevelCriteria"));
+		List<String> tools = new ArrayList<>(List.of("retrieveLevelCriteria"));
 		switch (contentType) {
 			case NOTION_LINK -> tools.add("fetchNotionPage");
 			case GITHUB_PR_LINK -> tools.add("fetchGitHubPR");

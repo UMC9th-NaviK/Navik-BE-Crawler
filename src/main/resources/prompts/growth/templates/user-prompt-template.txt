@@ -1,8 +1,7 @@
 [1. Analysis Target]
 {CONTENT_SECTION}
 
-[2. User Context (For Tool Usage)]
-- Job ID: {JOB_ID} (Use for 'retrieveKpiCards' and 'retrieveLevelCriteria')
+[2. User Context]
 - Current Level: {LEVEL_VALUE} (Use for 'retrieveLevelCriteria')
 
 [3. Background Info]
@@ -14,7 +13,7 @@
 * Data: {SATURATION_MAP}
 
 [5. Instructions for AI]
-1. Call 'retrieveKpiCards' with the Job ID.
+1. Refer to the [KPI Cards] in the System Prompt for evaluation criteria.
 2. Call 'retrieveLevelCriteria' with the Job ID and Current Level.
 {CONTENT_INSTRUCTION}
 4. **CHECK the 'KPI Saturation Data' above.**

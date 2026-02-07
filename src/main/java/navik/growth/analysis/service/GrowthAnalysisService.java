@@ -23,9 +23,9 @@ import navik.growth.analysis.strategy.PersonaPromptLoader;
  *
  * Workflow:
  * 1. 요청 수신: 사용자 정보(JobId, Level)와 성장 기록(Content) 수신
- * 2. 전략 선택: JobId에 맞는 평가 페르소나(시스템 프롬프트) 로드
+ * 2. 전략 선택: JobId에 맞는 평가 페르소나(시스템 프롬프트 + KPI 카드 포함) 로드
  * 3. AI 추론 및 도구 실행:
- *    - Step 1: AI가 JobId를 보고 retrieveKpiCards 호출 → DB에서 해당 직무의 10개 KPI 카드 정보 로드
+ *    - Step 1: AI가 시스템 프롬프트에 포함된 KPI 카드 목록을 기준으로 평가
  *    - Step 2: AI가 Level을 보고 retrieveLevelCriteria 호출 → 해당 레벨의 점수 산정 가이드라인 로드
  *    - Step 3: Content 타입(링크/텍스트)에 따른 신뢰도 가중치 적용
  *    - Step 4: recentKpiDeltas 확인 후 특정 kpiCard 빈도가 잦으면 해당 카드 점수 보정
@@ -57,7 +57,7 @@ public class GrowthAnalysisService {
 		String userPrompt = promptBuilder.buildUserPrompt(request, contentType);
 
 		// 3. AI 호출 (Spring AI Tool Calling)
-		//    - 공통: retrieveKpiCards, retrieveLevelCriteria
+		//    - 공통: retrieveLevelCriteria
 		//    - 링크인 경우: fetchNotionPage 또는 fetchGitHubPR 추가
 		List<String> toolNames = contentTypeHelper.buildToolNames(contentType);
 

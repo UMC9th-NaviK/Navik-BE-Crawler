@@ -39,7 +39,6 @@ public class PromptBuilder {
 
 		return template
 			.replace("{CONTENT_SECTION}", contentSection)
-			.replace("{JOB_ID}", String.valueOf(request.jobId()))
 			.replace("{LEVEL_VALUE}", String.valueOf(request.levelValue()))
 			.replace("{RESUME_TEXT}", request.context().resumeText())
 			.replace("{SATURATION_MAP}", saturationMap.toString())
