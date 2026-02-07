@@ -73,12 +73,17 @@ public class ResponseParser {
 		return kpis;
 	}
 
+	private static final int MAX_ABILITIES = 10;
+
 	private List<AnalysisResponse.GrowthAnalysisResponse.Ability> parseAbilities(JsonNode node) {
 		List<AnalysisResponse.GrowthAnalysisResponse.Ability> abilities = new ArrayList<>();
 		JsonNode abilitiesNode = node.get("abilities");
 
 		if (abilitiesNode != null && abilitiesNode.isArray()) {
 			for (JsonNode abilityNode : abilitiesNode) {
+				if (abilities.size() >= MAX_ABILITIES) {
+					break;
+				}
 				String abilityContent = abilityNode.asText();
 				abilities.add(new AnalysisResponse.GrowthAnalysisResponse.Ability(abilityContent, embeddingClient.embed(abilityContent)));
 			}

@@ -28,7 +28,7 @@ public class GrowthAnalysisToolConfig {
 	public Function<NotionPageRequest, String> fetchNotionPage(NotionPageExtractor extractor) {
 		return request -> {
 			try {
-				return extractor.extractPage(request.userId(), request.url());
+				return extractor.extractPage(Long.parseLong(request.userId()), request.url());
 			} catch (Exception e) {
 				// 에러 로그 추가
 				org.slf4j.LoggerFactory.getLogger(GrowthAnalysisToolConfig.class)
