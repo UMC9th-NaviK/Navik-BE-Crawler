@@ -41,7 +41,6 @@ public class GrowthAnalysisService {
 	private final ContentTypeHelper contentTypeHelper;
 	private final PromptBuilder promptBuilder;
 	private final ResponseParser responseParser;
-	private final ObjectMapper objectMapper;
 
 	/**
 	 * 성장 기록 분석 수행

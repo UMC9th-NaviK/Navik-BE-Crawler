@@ -73,7 +73,9 @@ public class GrowthAnalysisToolConfig {
 	 * AI가 Level을 보고 호출하여 점수 산정 기준을 로드
 	 */
 	@Bean
-	@Description("사용자 레벨 값으로 해당 레벨의 점수 산정 가이드라인을 조회합니다. 레벨에 맞는 평가 기준과 점수 범위를 텍스트로 반환합니다.")
+	@Description("입력된 레벨(1~10)에 해당하는 독립적인 평가 프롬프트를 로드합니다. " +
+		"각 프롬프트는 해당 레벨의 유저가 갖춰야 할 핵심 역량, 설계 판단력, " +
+		"그리고 이전 레벨을 포함하는 누적된 기술 수준을 평가하기 위한 AI 전용 가이드라인을 포함합니다.")
 	public Function<LevelCriteriaRequest, String> retrieveLevelCriteria(LevelCriteriaService levelCriteriaService) {
 		return request -> {
 			try {
