@@ -65,7 +65,7 @@ public class GrowthAnalysisService {
 			.system(systemPrompt) // 페르소나
 			.user(userPrompt) // 컨텍스트
 			.options(ChatOptions.builder()
-				.temperature(0.3)
+				.temperature(0.0)
 				.build()
 			)
 			.toolNames(toolNames.toArray(String[]::new))

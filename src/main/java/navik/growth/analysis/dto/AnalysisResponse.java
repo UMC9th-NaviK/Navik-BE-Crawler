@@ -13,11 +13,17 @@ public class AnalysisResponse {
 	public record GrowthAnalysisResponse(
 		String title,
 		String content,
-		List<KpiDelta> kpis
+		List<KpiDelta> kpis,
+		List<Ability> abilities // 추가됨
 	) {
 		public record KpiDelta(
 			Long kpiCardId,
 			Integer delta
+		) {
+		}
+		public record Ability(
+			String content,
+			float[] embedding
 		) {
 		}
 	}
