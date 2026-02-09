@@ -1,6 +1,7 @@
 package navik.growth.notion.api;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import navik.growth.extractor.dto.NotionApiResponses.Block;
 import navik.growth.extractor.dto.NotionApiResponses.BlockList;
 import navik.growth.extractor.dto.NotionApiResponses.Page;
-import navik.growth.notion.config.NotionOAuthProperties;
 import navik.growth.notion.exception.NotionApiException;
 import reactor.core.publisher.Mono;
 
@@ -26,13 +26,13 @@ public class NotionApiClient {
 
 	public NotionApiClient(
 		@Qualifier("notionWebClient") WebClient baseWebClient,
-		NotionOAuthProperties properties
+		@Value("${notion.api-version}") String apiVersion
 	) {
 		this.baseWebClient = baseWebClient.mutate()
 			.baseUrl(NOTION_API_BASE_URL)
 			.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
 			.build();
-		this.apiVersion = properties.apiVersion();
+		this.apiVersion = apiVersion;
 	}
 
 	/**

@@ -15,7 +15,7 @@ import navik.growth.extractor.dto.NotionApiResponses.RichText;
 import navik.growth.notion.api.NotionApiClient;
 import navik.growth.notion.dto.NotionWorkspaceToken;
 import navik.growth.notion.exception.NotionApiException;
-import navik.growth.notion.service.NotionOAuthService;
+import navik.growth.notion.repository.NotionTokenRepository;
 
 /**
  * Notion API를 통해 페이지 컨텐츠를 추출하는 컴포넌트
@@ -31,7 +31,7 @@ public class NotionPageExtractor {
 	);
 
 	private final NotionApiClient notionApiClient;
-	private final NotionOAuthService oAuthService;
+	private final NotionTokenRepository tokenRepository;
 
 	/**
 	 * 노션 페이지에서 컨텐츠 추출
@@ -44,7 +44,10 @@ public class NotionPageExtractor {
 		log.info("노션 페이지 추출 시작: userId={}, url={}", userId, url);
 
 		// 1. 사용자의 모든 워크스페이스 토큰 조회
-		List<NotionWorkspaceToken> tokens = oAuthService.getAllWorkspaceTokens(userId);
+		List<NotionWorkspaceToken> tokens = tokenRepository.findAllByUserId(userId);
+		if (tokens.isEmpty()) {
+			throw new NotionApiException("Notion이 연동되지 않았습니다. userId=" + userId);
+		}
 
 		// 2. URL에서 페이지 ID 추출
 		String pageId = extractPageId(url);

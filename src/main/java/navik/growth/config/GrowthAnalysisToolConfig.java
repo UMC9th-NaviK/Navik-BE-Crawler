@@ -21,16 +21,15 @@ public class GrowthAnalysisToolConfig {
 
 	/**
 	 * 노션 페이지의 전체 컨텐츠를 추출하는 Tool
-	 * 사용자별 OAuth 토큰으로 접근
 	 */
 	@Bean
-	@Description("노션 페이지의 전체 컨텐츠를 추출합니다. 사용자가 Notion OAuth로 연동한 페이지만 접근 가능합니다. userId와 노션 URL을 입력받아 마크다운 형식으로 내용을 반환합니다.")
+	@Description("노션 페이지의 전체 컨텐츠를 추출합니다. accessToken과 노션 URL을 입력받아 마크다운 형식으로 내용을 반환합니다.")
 	public Function<NotionPageRequest, String> fetchNotionPage(NotionPageExtractor extractor) {
 		return request -> {
 			try {
 				return extractor.extractPage(request.userId(), request.url());
 			} catch (Exception e) {
-				return "Error: 노션 페이지를 가져오는데 실패했습니다. Notion 연동 여부를 확인하세요. " + e.getMessage();
+				return "Error: 노션 페이지를 가져오는데 실패했습니다. " + e.getMessage();
 			}
 		};
 	}
