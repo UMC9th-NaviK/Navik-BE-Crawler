@@ -36,10 +36,10 @@ public class PersonaPromptLoader {
 	// 직무별 페르소나 정의 (Strategy Pattern의 텍스트 버전)
 	private String getPersonaDefinition(Long jobId) {
 		String personaPath = switch (jobId.intValue()) {
-			case 1 -> BACKEND_ENGINEER_PATH;
-			case 2 -> FRONTEND_ENGINEER_PATH;
-			case 3 -> PRODUCT_DESIGNER_PATH;
-			case 4 -> PRODUCT_MANAGER_PATH;
+			case 4 -> BACKEND_ENGINEER_PATH;
+			case 3 -> FRONTEND_ENGINEER_PATH;
+			case 2 -> PRODUCT_DESIGNER_PATH;
+			case 1 -> PRODUCT_MANAGER_PATH;
 			default -> DEFAULT_COACH_PATH;
 		};
 

@@ -31,4 +31,11 @@ public class ToolRequests {
 		Integer levelValue
 	) {
 	}
+
+	public record JobScopeRequest(
+		@JsonProperty(required = true)
+		@JsonPropertyDescription("직무 ID - 해당 직무의 핵심 책임과 명시적 제외 항목을 조회합니다")
+		Long jobId
+	) {
+	}
 }
