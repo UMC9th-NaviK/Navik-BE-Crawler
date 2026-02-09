@@ -13,16 +13,16 @@
 메인 서버가 사용자 인증, 성장 기록 CRUD, KPI 관리 등 핵심 비즈니스 로직을 담당하고, 이 서버는 **AI 추론**과 **외부 데이터 수집**에 집중합니다.
 
 ```
-┌──────────────────────────────┐                ┌──────────────────────────────┐
-│        Na:viK Main           │    REST API    │        Na:viK Crawler        │
+┌──────────────────────────────┐                 ┌──────────────────────────────┐
+│        Na:viK Main           │    REST API     │        Na:viK Crawler        │
 │           Server             │───────────────▶│          (This Server)       │
-│                              │                │                              │
+│                              │                 │                              │
 │  • Auth / Authorization      │◀───────────────│  • AI Growth Analysis        │
-│  • Growth Logs               │    JSON Resp   │  • Job Posting Crawler       │
-│  • KPI Management            │                │  • PDF OCR                   │
+│  • Growth Logs               │    JSON Resp    │  • Job Posting Crawler       │
+│  • KPI Management            │                 │  • PDF OCR                   │
 │                              │◀─ ─ ─ ─ ─ ─ ─ ─│                              │
-│                              │  Redis Stream  │                              │
-└──────────────────────────────┘                └──────────────────────────────┘
+│                              │  Redis Stream   │                              │
+└──────────────────────────────┘                 └──────────────────────────────┘
 ```
 
 ### 이 서버가 담당하는 기능
