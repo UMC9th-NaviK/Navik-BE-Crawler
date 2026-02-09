@@ -1,5 +1,7 @@
 package navik.growth.analysis.dto;
 
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -24,7 +26,7 @@ public class AnalysisRequest {
 				String title,
 				String content,
 				Integer totalDelta,
-				String createdAt) {
+				LocalDateTime createdAt) {
 		}
 
 		public record KpiDelta(
