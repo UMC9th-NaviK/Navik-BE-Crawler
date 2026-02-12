@@ -1,14 +1,109 @@
 # Navik BE Crawler
 
-Spring Boot 기반의 AI 성장 기록 분석 및 채용 크롤링 백엔드 서비스입니다.
+> Na:viK 메인 서버에서 AI 분석, 채용 크롤링, PDF OCR 등 연산 집약적 기능을 분리한 보조 서버입니다.
+
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen)
+![Spring AI](https://img.shields.io/badge/Spring%20AI-1.1.2-blue)
+
+---
+
+## 개요
+
+메인 서버가 사용자 인증, 성장 기록 CRUD, KPI 관리 등 핵심 비즈니스 로직을 담당하고, 이 서버는 **AI 추론**과 **외부 데이터 수집**에 집중합니다.
+
+```
+┌──────────────────────────────┐                 ┌──────────────────────────────┐
+│        Na:viK Main           │    REST API     │        Na:viK Crawler        │
+│           Server             │───────────────▶│          (This Server)       │
+│                              │                 │                              │
+│  • Auth / Authorization      │◀───────────────│  • AI Growth Analysis        │
+│  • Growth Logs               │    JSON Resp    │  • Job Posting Crawler       │
+│  • KPI Management            │                 │  • PDF OCR                   │
+│                              │◀─ ─ ─ ─ ─ ─ ─ ─│                              │
+│                              │  Redis Stream   │                              │
+└──────────────────────────────┘                 └──────────────────────────────┘
+```
+
+### 이 서버가 담당하는 기능
+
+| 모듈 | 설명 |
+|------|------|
+| **AI 성장 분석** | 성장 기록(텍스트, Notion, GitHub PR)을 직무별 페르소나로 평가, KPI 점수 산출 |
+| **채용 크롤링** | IT 직군 채용 공고를 수집하여 Redis Stream으로 메인 서버에 전달 |
+| **PDF OCR** | Naver Clova OCR 기반 PDF 텍스트 추출 (이력서 등록 등) |
+
+---
+
+## 기술 스택
+
+| 구분 | 기술 |
+|------|------|
+| **Framework** | Spring Boot 3.5.9, Spring AI 1.1.2 |
+| **Language** | Java 21 |
+| **AI** | Spring AI ChatClient + Tool Calling (GPT-4.1-mini) |
+| **External API** | Notion API v1, GitHub REST API v3, Naver Clova OCR |
+| **Infra** | Redis (Stream) |
+| **HTTP Client** | Spring WebFlux (WebClient) |
+| **Build** | Gradle |
+| **기타** | Selenium, JSoup, Lombok |
+
+---
+
+## Getting Started
+
+### 요구사항
+
+- **Java 21** 이상
+- **Gradle** 8.x (또는 프로젝트 내 `gradlew` 사용)
+- **Redis** 6.x 이상
+- **OpenAI API Key**
+
+### 환경변수 설정
+
+프로젝트 루트에 `.env` 파일을 생성합니다. (`.gitignore`에 추가 필수)
+
+```dotenv
+# === 필수 ===
+SPRING_PROFILES_ACTIVE=dev
+OPENAI_API_KEY=sk-your-openai-api-key
+REDIS_HOST=localhost
+REDIS_PORT=6379
+CRAWL_STREAM_KEY=stream
+JWT_SECRET=your-jwt-secret
+
+# === 선택 ===
+# Naver Clova OCR
+NAVER_OCR_URL=https://your-ocr-endpoint
+NAVER_OCR_SECRET_KEY=your-ocr-secret
+
+# Notion
+NOTION_OAUTH_CLIENT_ID=your-notion-client-id
+NOTION_OAUTH_CLIENT_SECRET=your-notion-secret
+NOTION_OAUTH_REDIRECT_URI=http://localhost:8080/api/notion/oauth/callback
+
+# AWS
+AWS_REGION=ap-northeast-2
+AWS_S3_BUCKET=your-bucket-name
+```
+
+### 실행
+
+```bash
+# 개발 실행
+./gradlew bootRun
+
+# 빌드 후 JAR 실행
+./gradlew build
+java -jar build/libs/navik-1.0.0.jar
+
+# 헬스체크
+curl http://localhost:8080/health
+```
 
 ---
 
 ## 성장 기록 분석 (Growth Analysis)
-
-### 개요
-
-사용자가 제출한 성장 기록(텍스트, Notion 페이지, GitHub PR)을 AI가 직무별 페르소나로 평가하고, 10개 KPI 카드에 대한 점수 변화(delta)를 산출합니다.
 
 ### 분석 흐름
 
@@ -78,6 +173,15 @@ Content-Type: application/json; charset=UTF-8
 }
 ```
 
+**jobId 매핑**
+
+| jobId | 직무 | 페르소나 |
+|-------|------|---------|
+| 1 | PM | `product-manager.txt` |
+| 2 | 디자이너 | `product-designer.txt` |
+| 3 | 프론트엔드 | `frontend-engineer.txt` |
+| 4 | 백엔드 | `backend-engineer.txt` |
+
 ### 프롬프트 구조
 
 ```
@@ -123,6 +227,19 @@ prompts/growth/
 
 ---
 
+## API Reference
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| `POST` | `/v1/growth-logs/evaluate/user-input` | AI 성장 기록 분석 |
+| `GET` | `/health` | 헬스체크 |
+| `GET` | `/trigger` | 크롤러 수동 트리거 |
+| `GET` | `/stop` | 크롤러 중지 |
+| `GET` | `/status` | 크롤러 상태 조회 |
+| `POST` | `/ocr/pdf` | PDF 텍스트 추출 (OCR) |
+
+---
+
 ## 프로젝트 구조
 
 ```
@@ -161,13 +278,11 @@ src/main/java/navik/
 │   ├── extractor/
 │   │   ├── NotionPageExtractor.java            # Notion 페이지 마크다운 변환
 │   │   └── GitHubPRExtractor.java              # GitHub PR 정보 추출
-│   ├── notion/                                 # Notion OAuth 연동
-│   │   ├── controller/
-│   │   │   └── NotionOAuthController.java
-│   │   ├── service/
-│   │   │   └── NotionOAuthService.java
-│   │   └── api/
-│   │       └── NotionApiClient.java
+│   ├── notion/                                 # Notion API 연동
+│   │   ├── api/
+│   │   │   └── NotionApiClient.java
+│   │   └── config/
+│   │       └── NotionWebClientConfig.java
 │   └── tool/
 │       ├── dto/
 │       │   ├── ToolRequests.java
@@ -195,10 +310,63 @@ src/main/java/navik/
 
 ---
 
-## 기술 스택
+## 테스트
 
-- **Framework**: Spring Boot, Spring AI
-- **AI**: Spring AI ChatClient (Function/Tool Calling)
-- **External API**: Notion API (OAuth), GitHub REST API, Naver Clova OCR
-- **Infra**: Redis
-- **Build**: Gradle
+```bash
+./gradlew test
+```
+
+---
+
+## 배포
+
+운영 환경에서는 `.env` 대신 시스템 환경변수 또는 시크릿 매니저를 사용합니다.
+
+```bash
+# 필수 환경변수
+SPRING_PROFILES_ACTIVE=prod
+OPENAI_API_KEY=sk-...
+REDIS_HOST=your-redis-host
+REDIS_PORT=6379
+CRAWL_STREAM_KEY=stream
+
+# 빌드 및 실행
+./gradlew build
+java -jar build/libs/navik-1.0.0.jar
+```
+
+---
+
+## Troubleshooting
+
+| 증상 | 원인 | 해결 |
+|------|------|------|
+| `Connection refused: localhost:6379` | Redis 미실행 | `redis-server` 실행 또는 Docker로 기동 |
+| AI 응답이 비어있음 | OpenAI API Key 미설정/만료 | `.env`에 유효한 `OPENAI_API_KEY` 설정 |
+| Notion 페이지 추출 실패 | Integration 미연결 | Notion에서 Integration 연결 후 Access Token 확인 |
+| GitHub PR 추출 실패 | Private 저장소 | 현재 Public PR만 지원 |
+
+## 👤 Na:viK BE
+
+| <img src="https://avatars.githubusercontent.com/u/186535028?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/81423073?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/81312085?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/158552165?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/108278044?v=4" width="150" height="150"/> |
+| --- | --- | --- | --- | --- |
+| @kjhh2605<br/>[GitHub](https://github.com/kjhh2605) | @bmh7190<br/>[GitHub](https://github.com/bmh7190) | @kfdsy0103<br/>[GitHub](https://github.com/kfdsy0103) | @hardwoong<br/>[GitHub](https://github.com/hardwoong) | @LeeJaeJun1<br/>[GitHub](https://github.com/LeeJaeJun1) 
+
+
+---
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/UMC9th-NaviK/NaviK-BE-Crawler/issues)
+- **Organization**: [UMC 9th - NaviK Team](https://github.com/UMC9th-NaviK)
+
+---
+
+## Credits
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Spring AI](https://docs.spring.io/spring-ai/reference/) - AI 통합 프레임워크 (Tool Calling)
+- [OpenAI API](https://platform.openai.com/) (GPT-4.1-mini, text-embedding-3-small)
+- [Notion API](https://developers.notion.com/) - 페이지 데이터 추출
+- [GitHub REST API](https://docs.github.com/en/rest) - PR 데이터 추출
+- [Naver Clova OCR](https://www.ncloud.com/product/aiService/ocr) - PDF 텍스트 추출

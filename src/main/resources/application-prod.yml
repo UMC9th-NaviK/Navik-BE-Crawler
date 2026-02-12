@@ -33,10 +33,6 @@ growth:
     enabled: true
     timeout: 10000  # 10초
 
-# Notion OAuth 설정
+# Notion 설정
 notion:
   api-version: "2022-06-28"
-  oauth:
-    client-id: ${NOTION_OAUTH_CLIENT_ID}
-    client-secret: ${NOTION_OAUTH_CLIENT_SECRET}
-    redirect-uri: ${NOTION_OAUTH_REDIRECT_URI}
