@@ -10,6 +10,13 @@ spring:
       stream:
         keys:
           crawl: ${CRAWL_STREAM_KEY:stream}
+        groups:
+          crawl: ${CRAWL_GROUP_NAME:group}
+      congestion:
+        max-memory-usage: 0.7
+        max-stream-length: 30
+        max-pending-threshold: 10
+
 
   ai:
     openai:

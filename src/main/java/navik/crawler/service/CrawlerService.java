@@ -26,6 +26,7 @@ import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
 import navik.redis.client.RedisStreamProducer;
+import navik.redis.congestion.RedisCongestionManager;
 
 @Slf4j
 @Service
@@ -39,9 +40,12 @@ public class CrawlerService {
 	private final LLMClient llmClient;
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
+	private final RedisCongestionManager redisCongestionManager;
 
 	@Value("${spring.data.redis.stream.keys.crawl}")
 	private String recruitmentStreamKey;
+
+	@Value("${spring.data.redis.stream.}")
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -214,6 +218,16 @@ public class CrawlerService {
 			.positions(positions)
 			.summary(llmResult.getSummary())
 			.build();
+
+		// 7. 혼잡 확인
+		while (redisCongestionManager.isCongested(recruitmentStreamKey)) {
+			log.info("Redis 혼잡 상태로 인해 5초간 대기합니다...");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 
 		// 7. 발행
 		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);

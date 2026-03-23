@@ -18,11 +18,11 @@ public class RedisCongestionManager {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
-	@Value("${redis.congestion.max-memory-usage}:0.7")
+	@Value("${spring.data.redis.congestion.max-memory-usage}:0.7")
 	private double maxMemoryUsage;
-	@Value("${redis.congestion.max-stream-length:30}")
+	@Value("${spring.data.redis.congestion.max-stream-length:30}")
 	private long maxStreamLength;
-	@Value("${redis.congestion.max-pending-threshold:10}")
+	@Value("${spring.data.redis.congestion.max-pending-threshold:10}")
 	private long maxPendingThreshold;
 
 	public boolean isCongested(String streamKey, String groupName) {
