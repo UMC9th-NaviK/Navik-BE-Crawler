@@ -220,17 +220,21 @@ public class CrawlerService {
 			.summary(llmResult.getSummary())
 			.build();
 
-		// 7. 혼잡 확인
+		// 7. 혼잡 확인 커맨드 전송 및 exponential backoff로 부하 감소
+		long delay = 1000L; // first 1s
+		final long maxDelay = 30000L; // max 30s
 		while (redisCongestionManager.isCongested(recruitmentStreamKey, recruitmentGroupName)) {
-			log.info("Redis 혼잡 상태로 인해 5초간 대기합니다...");
+			log.info("Redis 혼잡 상태로 인해 {}ms간 대기합니다...", delay);
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(delay);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				log.warn("혼잡 대기 중 Thread 인터럽트 발생 {}", e.getMessage());
 			}
+			delay = Math.min(delay * 2, maxDelay);
 		}
 
-		// 7. 발행
+		// 8. 발행
 		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);
 	}
 }
