@@ -8,10 +8,9 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       stream:
-        keys:
-          crawl: ${CRAWL_STREAM_KEY}
-        groups:
-          crawl: ${CRAWL_GROUP_NAME}
+        crawl:
+          key: ${CRAWL_STREAM_KEY}
+          group: ${CRAWL_GROUP_NAME}
       congestion:
         max-memory-usage: 0.7
         max-stream-length: 30

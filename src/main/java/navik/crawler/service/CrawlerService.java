@@ -42,10 +42,11 @@ public class CrawlerService {
 	private final RedisStreamProducer redisStreamProducer;
 	private final RedisCongestionManager redisCongestionManager;
 
-	@Value("${spring.data.redis.stream.keys.crawl}")
+	@Value("${spring.data.redis.stream.crawl.key}")
 	private String recruitmentStreamKey;
 
-	@Value("${spring.data.redis.stream.}")
+	@Value("${spring.data.redis.stream.crawl.group}")
+	private String recruitmentGroupName;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -220,7 +221,7 @@ public class CrawlerService {
 			.build();
 
 		// 7. 혼잡 확인
-		while (redisCongestionManager.isCongested(recruitmentStreamKey)) {
+		while (redisCongestionManager.isCongested(recruitmentStreamKey, recruitmentGroupName)) {
 			log.info("Redis 혼잡 상태로 인해 5초간 대기합니다...");
 			try {
 				Thread.sleep(5000);
