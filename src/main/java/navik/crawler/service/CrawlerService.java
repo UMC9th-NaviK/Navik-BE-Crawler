@@ -220,7 +220,7 @@ public class CrawlerService {
 			.summary(llmResult.getSummary())
 			.build();
 
-		// 7. 혼잡 확인 커맨드 전송 및 exponential backoff로 부하 감소
+		// 7. 혼잡 확인 커맨드 전송 및 exponential back-off로 부하 감소
 		long delay = 1000L; // first 1s
 		final long maxDelay = 30000L; // max 30s
 		while (redisCongestionManager.isCongested(recruitmentStreamKey, recruitmentGroupName)) {
@@ -229,7 +229,8 @@ public class CrawlerService {
 				Thread.sleep(delay);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				log.warn("혼잡 대기 중 Thread 인터럽트 발생 {}", e.getMessage());
+				log.warn("혼잡 대기 중 Thread 인터럽트가 발생하여 발행 취소 메시지: {}", e.getMessage());
+				return;
 			}
 			delay = Math.min(delay * 2, maxDelay);
 		}
