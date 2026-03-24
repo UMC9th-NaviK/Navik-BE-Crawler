@@ -30,8 +30,8 @@ spring:
 
 naver:
   ocr:
-    url: ${NAVER_OCR_URL}
-    secretKey: ${NAVER_OCR_SECRET_KEY}
+    url: ${NAVER_OCR_URL:hello}
+    secretKey: ${NAVER_OCR_SECRET_KEY:hello}
 
 # Growth Analysis 설정
 growth:
