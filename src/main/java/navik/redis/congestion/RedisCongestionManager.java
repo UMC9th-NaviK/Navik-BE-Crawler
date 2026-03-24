@@ -18,7 +18,7 @@ public class RedisCongestionManager {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
-	@Value("${spring.data.redis.congestion.max-memory-usage}:0.7")
+	@Value("${spring.data.redis.congestion.max-memory-usage:0.7}")
 	private double maxMemoryUsage;
 	@Value("${spring.data.redis.congestion.max-stream-length:30}")
 	private long maxStreamLength;
@@ -83,7 +83,7 @@ public class RedisCongestionManager {
 	/**
 	 * Pending 메시지 개수 임계치 검사
 	 */
-	private boolean isPendingMessagesExceeded(String streamKey, String groupName) {
+	public boolean isPendingMessagesExceeded(String streamKey, String groupName) {
 		PendingMessagesSummary pendingSummary = redisTemplate.opsForStream().pending(streamKey, groupName);
 
 		if (pendingSummary == null) {
