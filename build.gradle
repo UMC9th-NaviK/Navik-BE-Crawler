@@ -38,7 +38,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
+
+    // Test Container
+    implementation 'org.testcontainers:testcontainers-bom:1.20.2'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
