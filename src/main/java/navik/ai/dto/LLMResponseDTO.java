@@ -3,6 +3,7 @@ package navik.ai.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -20,6 +21,7 @@ public class LLMResponseDTO {
 	@ToString
 	@Getter
 	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class Recruitment {
 		private String link;
 		private String title;
@@ -36,6 +38,7 @@ public class LLMResponseDTO {
 		@ToString
 		@Getter
 		@NoArgsConstructor
+		@AllArgsConstructor
 		public static class Position {
 			private String name;
 			private JobType jobType;
