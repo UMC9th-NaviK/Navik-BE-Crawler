@@ -45,11 +45,22 @@ public class RedisCongestionManager {
 		}
 
 		long usedMemory = Long.parseLong(info.getProperty("used_memory"));
+		long usedMemoryDataset = Long.parseLong(info.getProperty("used_memory_dataset"));
+		long usedMemoryOverhead = Long.parseLong(info.getProperty("used_memory_overhead"));
+		long memClientsNormal = Long.parseLong(info.getProperty("mem_clients_normal"));
 		long maxMemory = Long.parseLong(info.getProperty("maxmemory"));
+
 		if (maxMemory == 0) {
-			log.warn("Redis maxmemory가 0으로 설정되어 있습니다. OOM에 주의하세요. total System Memory로 계산합니다.");
-			maxMemory = Long.parseLong(info.getProperty("total_system_memory"));
+			log.warn("Redis maxmemory가 0으로 설정되어 있습니다. OOM에 주의하세요. used_memory_rss로 계산합니다.");
+			maxMemory = Long.parseLong(info.getProperty("used_memory_rss"));
 		}
+
+		log.info(String.format("현재 메모리 사용량: %.2fMB (데이터셋: %.2fMB + 오버헤드: %.2fMB)",
+			bytesToMegabytes(usedMemory),
+			bytesToMegabytes(usedMemoryDataset),
+			bytesToMegabytes(usedMemoryOverhead))
+		);
+		log.info(String.format("클라이언트 버퍼 사용량: 클라이언트=%.2fMB", bytesToMegabytes(memClientsNormal)));
 
 		double ratio = (double)usedMemory / maxMemory;
 		if (ratio > maxMemoryUsage) {
@@ -98,5 +109,9 @@ public class RedisCongestionManager {
 		}
 
 		return false;
+	}
+
+	private double bytesToMegabytes(long bytes) {
+		return (double)bytes / (1024 * 1024);
 	}
 }
