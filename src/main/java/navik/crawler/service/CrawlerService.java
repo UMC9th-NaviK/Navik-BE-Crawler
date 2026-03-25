@@ -146,7 +146,7 @@ public class CrawlerService {
 	/**
 	 * 채용 공고에 대한 데이터 추출, 변환, 적재 작업을 수행하는 메서드입니다.
 	 */
-	private void processETL(WebDriverWait wait) {
+	public void processETL(WebDriverWait wait) {
 
 		// 1. 채용 공고 상세 페이지 url 유효성 검사
 		String link = crawlerDataExtractor.extractCurrentUrl(wait);
