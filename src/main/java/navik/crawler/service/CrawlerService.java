@@ -26,6 +26,7 @@ import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
 import navik.redis.client.RedisStreamProducer;
+import navik.redis.congestion.RedisCongestionManager;
 
 @Slf4j
 @Service
@@ -39,9 +40,13 @@ public class CrawlerService {
 	private final LLMClient llmClient;
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
+	private final RedisCongestionManager redisCongestionManager;
 
-	@Value("${spring.data.redis.stream.keys.crawl}")
+	@Value("${spring.data.redis.stream.crawl.key}")
 	private String recruitmentStreamKey;
+
+	@Value("${spring.data.redis.stream.crawl.group}")
+	private String recruitmentGroupName;
 
 	/**
 	 * 스케쥴링에 의해 주기적으로 실행되는 메서드입니다.
@@ -141,7 +146,7 @@ public class CrawlerService {
 	/**
 	 * 채용 공고에 대한 데이터 추출, 변환, 적재 작업을 수행하는 메서드입니다.
 	 */
-	private void processETL(WebDriverWait wait) {
+	public void processETL(WebDriverWait wait) {
 
 		// 1. 채용 공고 상세 페이지 url 유효성 검사
 		String link = crawlerDataExtractor.extractCurrentUrl(wait);
@@ -215,7 +220,22 @@ public class CrawlerService {
 			.summary(llmResult.getSummary())
 			.build();
 
-		// 7. 발행
+		// 7. 혼잡 확인 커맨드 전송 및 exponential back-off로 부하 감소
+		long delay = 1000L; // first 1s
+		final long maxDelay = 30000L; // max 30s
+		while (redisCongestionManager.isCongested(recruitmentStreamKey, recruitmentGroupName)) {
+			log.info("Redis 혼잡 상태로 인해 {}ms간 대기합니다...", delay);
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				log.warn("혼잡 대기 중 Thread 인터럽트가 발생하여 발행 취소 메시지: {}", e.getMessage());
+				return;
+			}
+			delay = Math.min(delay * 2, maxDelay);
+		}
+
+		// 8. 발행
 		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);
 	}
 }

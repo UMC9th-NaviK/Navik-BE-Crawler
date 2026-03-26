@@ -8,8 +8,13 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       stream:
-        keys:
-          crawl: ${CRAWL_STREAM_KEY}
+        crawl:
+          key: ${CRAWL_STREAM_KEY}
+          group: ${CRAWL_GROUP_NAME}
+      congestion:
+        max-memory-usage: 0.7
+        max-stream-length: 30
+        max-pending-threshold: 10
 
   ai:
     openai:

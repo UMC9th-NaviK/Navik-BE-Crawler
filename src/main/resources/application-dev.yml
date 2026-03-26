@@ -8,8 +8,14 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       stream:
-        keys:
-          crawl: ${CRAWL_STREAM_KEY:stream}
+        crawl:
+          key: ${CRAWL_STREAM_KEY:stream}
+          group: ${CRAWL_GROUP_NAME:group}
+      congestion:
+        max-memory-usage: 0.7
+        max-stream-length: 30
+        max-pending-threshold: 10
+
 
   ai:
     openai:
@@ -24,8 +30,8 @@ spring:
 
 naver:
   ocr:
-    url: ${NAVER_OCR_URL}
-    secretKey: ${NAVER_OCR_SECRET_KEY}
+    url: ${NAVER_OCR_URL:hello}
+    secretKey: ${NAVER_OCR_SECRET_KEY:hello}
 
 # Growth Analysis 설정
 growth:
