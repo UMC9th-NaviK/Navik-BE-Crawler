@@ -4,6 +4,8 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,9 +29,11 @@ import navik.ai.enums.ExperienceType;
 import navik.ai.enums.IndustryType;
 import navik.ai.enums.JobType;
 import navik.ai.enums.MajorType;
+import navik.crawler.constants.JobKoreaConstant;
 import navik.crawler.dto.Recruitment;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerValidator;
+import navik.redis.bloomFilter.factory.RedisBloomFilterFactory;
 import navik.redis.client.RedisStreamProducer;
 import navik.redis.config.RedisTestContainersConfig;
 import navik.redis.congestion.RedisCongestionManager;
@@ -41,6 +45,8 @@ class CrawlerServiceTest extends RedisTestContainersConfig {
 	private CrawlerService crawlerService;
 	@Autowired
 	private RedisTemplate<String, String> redisTemplate;
+	@Autowired
+	private RedisBloomFilterFactory redisBloomFilterFactory;
 
 	@MockitoBean
 	private CrawlerDataExtractor crawlerDataExtractor;
@@ -94,7 +100,6 @@ class CrawlerServiceTest extends RedisTestContainersConfig {
 	void processETL_Success_WhenRedisNotInCongestion() {
 		// given
 		setupDefaultMocks();
-		doReturn(false).when(redisCongestionManager).isCongested(TEST_STREAM_KEY, TEST_GROUP_NAME);
 
 		// when
 		crawlerService.processETL(wait);
@@ -102,6 +107,38 @@ class CrawlerServiceTest extends RedisTestContainersConfig {
 		// then
 		verify(redisCongestionManager, times(1)).isCongested(TEST_STREAM_KEY, TEST_GROUP_NAME);
 		verify(redisStreamProducer, times(1)).produceRecruitment(eq(TEST_STREAM_KEY), any(Recruitment.class));
+	}
+
+	@Test
+	@DisplayName("processETL() - BloomFilter에 의해 이미 처리된 공고(게시글 식별번호: postId)는 처리하지 않는다.")
+	void precessETL_Duplicated_No_Process() {
+		// given
+		setupDefaultMocks();
+		doReturn(false).when(redisCongestionManager).isCongested(anyString(), anyString());
+
+		// postId: 0 ~ 999 까지 이미 추출된 상황
+		String bloomFilterName = JobKoreaConstant.BLOOM_FILTER_NAME;
+		long insertionSize = JobKoreaConstant.BLOOM_FILTER_INSERTION_SIZE;
+		double fpp = JobKoreaConstant.BLOOM_FILTER_FPP;
+		List<String> initValues = IntStream.range(0, (int)insertionSize)
+			.mapToObj(i -> String.valueOf(i))
+			.toList();
+		redisBloomFilterFactory.createBloomFilter(bloomFilterName, insertionSize, initValues, fpp);
+
+		// 동일 postId로 추출 시도
+		AtomicInteger atomicInteger = new AtomicInteger(0);
+		when(crawlerDataExtractor.extractPostId(any())).thenAnswer(invocation ->
+			String.valueOf(atomicInteger.getAndIncrement())
+		);
+
+		// when
+		for (int i = 0; i < 1000; i++) {
+			crawlerService.processETL(wait);
+		}
+
+		// then - 이미 추출된 공고에 대해서는 LLM API 호출, 스트림 발행이 이루어지지 않는다.
+		verify(llmClient, never()).getRecruitment(anyString());
+		verify(redisStreamProducer, never()).produceRecruitment(anyString(), any());
 	}
 
 	private void setupDefaultMocks() {
