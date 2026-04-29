@@ -51,6 +51,9 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // Redisson 4.3.0
+    implementation 'org.redisson:redisson-spring-boot-starter:4.3.0'
+
     // Spring AI
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 

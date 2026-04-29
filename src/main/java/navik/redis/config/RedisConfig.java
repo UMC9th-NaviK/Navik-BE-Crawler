@@ -1,10 +1,13 @@
 package navik.redis.config;
 
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+import org.redisson.spring.data.connection.RedissonConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -17,11 +20,21 @@ public class RedisConfig {
 	private int port;
 
 	/**
-	 * Redis 연결을 위한 'Connection'을 생성합니다.
+	 * Redisson Client 빈을 생성합니다.
 	 */
 	@Bean
-	public RedisConnectionFactory redisConnectionFactory() {
-		return new LettuceConnectionFactory(host, port);
+	public RedissonClient redissonClient() {
+		Config config = new Config();
+		config.useSingleServer().setAddress("redis://" + host + ":" + port);
+		return Redisson.create(config);
+	}
+
+	/**
+	 * Redisson Client 기반으로 RedisConnectionFactory 빈을 생성합니다.
+	 */
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory(RedissonClient redissonClient) {
+		return new RedissonConnectionFactory(redissonClient);
 	}
 
 	/**
@@ -29,11 +42,11 @@ public class RedisConfig {
 	 * 해당 구성된 RedisTemplate을 통해서 데이터 통신으로 처리되는 대한 직렬화를 수행합니다.
 	 */
 	@Bean
-	public RedisTemplate<String, Object> redisTemplate() {
+	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 
 		// Redis를 연결합니다.
-		redisTemplate.setConnectionFactory(redisConnectionFactory());
+		redisTemplate.setConnectionFactory(redisConnectionFactory);
 
 		// Key-Value 형태로 직렬화를 수행합니다.
 		redisTemplate.setKeySerializer(new StringRedisSerializer());

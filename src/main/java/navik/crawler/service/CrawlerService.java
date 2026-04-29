@@ -25,6 +25,8 @@ import navik.crawler.factory.WebDriverFactory;
 import navik.crawler.util.CrawlerDataExtractor;
 import navik.crawler.util.CrawlerSearchHelper;
 import navik.crawler.util.CrawlerValidator;
+import navik.redis.bloomFilter.factory.RedisBloomFilterFactory;
+import navik.redis.bloomFilter.wrapper.RedisBloomFilter;
 import navik.redis.client.RedisStreamProducer;
 import navik.redis.congestion.RedisCongestionManager;
 
@@ -41,6 +43,7 @@ public class CrawlerService {
 	private final EmbeddingClient embeddingClient;
 	private final RedisStreamProducer redisStreamProducer;
 	private final RedisCongestionManager redisCongestionManager;
+	private final RedisBloomFilterFactory redisBloomFilterFactory;
 
 	@Value("${spring.data.redis.stream.crawl.key}")
 	private String recruitmentStreamKey;
@@ -148,25 +151,33 @@ public class CrawlerService {
 	 */
 	public void processETL(WebDriverWait wait) {
 
-		// 1. 채용 공고 상세 페이지 url 유효성 검사
+		// 1. 채용 공고 중복 처리 검사
+		RedisBloomFilter bloomFilter = redisBloomFilterFactory.getBloomFilter(JobKoreaConstant.BLOOM_FILTER_NAME);
+		String postId = crawlerDataExtractor.extractPostId(wait);
+		if (bloomFilter.mightContain(postId)) {
+			log.info("이미 추출된 채용 공고 postId: {}", postId);
+			return;
+		}
+
+		// 2. 채용 공고 상세 페이지 url 유효성 검사
 		String link = crawlerDataExtractor.extractCurrentUrl(wait);
 		if (!crawlerValidator.isValidDetailUrl(link)) {
 			log.info("유효하지 않은 채용 공고 링크: {}", link);
 			return;
 		}
 
-		// 2. 제목 유효성 검사
+		// 3. 제목 유효성 검사
 		String title = crawlerDataExtractor.extractTitle(wait);
 		if (crawlerValidator.isSkipTitle(title)) {
 			log.info("유효하지 않은 채용 공고 제목: {}", title);
 			return;
 		}
 
-		// 3. 나머지 데이터 추출 및 DTO 작성
+		// 4. 나머지 데이터 추출 및 DTO 작성
 		CrawledRecruitment crawledRecruitment = CrawledRecruitment.builder()
 			.link(link)
 			.title(title)
-			.postId(crawlerDataExtractor.extractPostId(wait))
+			.postId(postId)
 			.companyName(crawlerDataExtractor.extractCompanyName(wait))
 			.companyLogo(crawlerDataExtractor.extractCompanyLogo(wait))
 			.companyInfo(crawlerDataExtractor.extractCompanyInfo(wait))
@@ -176,12 +187,12 @@ public class CrawlerService {
 			.recruitmentDetail(crawlerDataExtractor.extractRecruitmentDetail(wait))
 			.build();
 
-		// 4. LLM 호출
+		// 5. LLM 호출
 		String html = crawledRecruitment.toHtmlString();
 		LLMResponseDTO.Recruitment llmResult = llmClient.getRecruitment(html);
 		log.info("[LLM 채용 공고 결과] {}", llmResult);
 
-		// 5. KPI 임베딩
+		// 6. KPI 임베딩
 		List<Recruitment.Position> positions = llmResult.getPositions().stream()
 			.map(llmPosition -> {
 				List<Recruitment.Position.KPI> kpis = llmPosition.getKpis().stream()
@@ -205,7 +216,7 @@ public class CrawlerService {
 					.build();
 			}).toList();
 
-		// 6. DTO 생성
+		// 7. DTO 생성
 		Recruitment recruitment = Recruitment.builder()
 			.link(llmResult.getLink())
 			.title(llmResult.getTitle())
@@ -220,7 +231,7 @@ public class CrawlerService {
 			.summary(llmResult.getSummary())
 			.build();
 
-		// 7. 혼잡 확인 커맨드 전송 및 exponential back-off로 부하 감소
+		// 8. 혼잡 확인 커맨드 전송 및 exponential back-off로 부하 감소
 		long delay = 1000L; // first 1s
 		final long maxDelay = 30000L; // max 30s
 		while (redisCongestionManager.isCongested(recruitmentStreamKey, recruitmentGroupName)) {
@@ -235,7 +246,10 @@ public class CrawlerService {
 			delay = Math.min(delay * 2, maxDelay);
 		}
 
-		// 8. 발행
+		// 9. 발행
 		redisStreamProducer.produceRecruitment(recruitmentStreamKey, recruitment);
+
+		// 10. Bloom filter 기록
+		bloomFilter.put(postId);
 	}
 }
