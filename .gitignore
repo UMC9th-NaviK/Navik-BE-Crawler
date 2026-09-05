@@ -42,3 +42,6 @@ out/
 .env.*.local
 
 nul
+
+### Local documentation ###
+/docs/
