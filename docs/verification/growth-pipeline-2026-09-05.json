@@ -1,0 +1,91 @@
+{
+  "recorded_date": "2026-09-05",
+  "repository": "Navik-BE-Crawler",
+  "environment": {
+    "os": "Windows",
+    "java": 21,
+    "database": "Isolated local PostgreSQL 17; unique schema per test",
+    "redis": "Isolated official redis:7.4-alpine Docker container",
+    "external_ai": "Mocked; no paid LLM/embedding requests"
+  },
+  "selection": [
+    "navik.growth.pipeline.*",
+    "navik.pipeline.*"
+  ],
+  "totals": {
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "scope_note": "SQL/store/queue integration and mocked business-effect ledger; not a deployed full application or production performance benchmark",
+  "suites": [
+    {
+      "name": "navik.growth.pipeline.GrowthEmbeddingServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.331,
+      "cases": [
+        "invalidVectorIsNeverCheckpointed()",
+        "resumesAfterPartialFailureWithoutEmbeddingSuccessfulTextAgain()",
+        "changedDraftCannotReuseAnOlderCheckpoint()"
+      ]
+    },
+    {
+      "name": "navik.growth.pipeline.GrowthJobStoreTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.698,
+      "cases": [
+        "onlyOneWorkerAcquiresAndExpiredOwnerCannotCommit()",
+        "embeddingRetryKeepsAnalysisAndPartialVectors()",
+        "retryDeadlinePreventsEarlyReexecutionAndTerminalFailureEmitsResultAndDlq()",
+        "expiredLeaseCannotBeRenewedAndBudgetDeferralDoesNotSpendAttempts()",
+        "modelVersionCannotChangeWhileReusingEmbeddingCheckpoint()",
+        "resultAndNextOutboxRollBackTogether()"
+      ]
+    },
+    {
+      "name": "navik.growth.pipeline.GrowthStageProcessorIntegrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.608,
+      "cases": [
+        "persistedAnalysisAndPartialEmbeddingResumeWithoutRepeatingLlm()"
+      ]
+    },
+    {
+      "name": "navik.growth.pipeline.ResponseParserTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.025,
+      "cases": [
+        "rejectsDuplicateKpiRatherThanApplyingItsScoreTwice()",
+        "rejectsFailedAnalysisAndMalformedAbility()",
+        "createsTextOnlyDraftWithoutAnEmbeddingDependency()"
+      ]
+    },
+    {
+      "name": "navik.pipeline.PipelineStreamConsumerIntegrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.485,
+      "cases": [
+        "groupCreatedAfterPublishConsumesBacklogAndDeletesOnlyAfterSuccess()",
+        "abandonedMessageIsClaimedAndProcessed()",
+        "consumersReadOnlyUpToTheirExecutionCapacity()",
+        "workerFailureLeavesPendingForRecovery()"
+      ]
+    }
+  ]
+}

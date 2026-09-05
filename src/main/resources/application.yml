@@ -11,3 +11,15 @@ spring:
     name: ${SPRING_APP_NAME:navik}
   profiles:
     active: ${SPRING_ACTIVE_PROFILE:dev}
+# Opt-in: apply the shared task schema and deploy the matching Spring PR first.
+navik:
+  growth-pipeline:
+    enabled: ${GROWTH_PIPELINE_ENABLED:false}
+    jdbc-url: ${GROWTH_PIPELINE_JDBC_URL:}
+    username: ${GROWTH_PIPELINE_DB_USER:}
+    password: ${GROWTH_PIPELINE_DB_PASSWORD:}
+    analysis-concurrency: ${GROWTH_ANALYSIS_CONCURRENCY:2}
+    embedding-concurrency: ${GROWTH_EMBEDDING_CONCURRENCY:2}
+    max-attempts: ${GROWTH_PIPELINE_MAX_ATTEMPTS:3}
+    starts-per-minute: ${GROWTH_PIPELINE_STARTS_PER_MINUTE:30}
+    max-runtime-seconds: ${GROWTH_PIPELINE_MAX_RUNTIME_SECONDS:300}
