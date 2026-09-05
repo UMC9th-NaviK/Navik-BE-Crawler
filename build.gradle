@@ -87,3 +87,11 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Test-only entry points are launched as isolated JVMs by the E2E experiment runner.
+tasks.register('pipelineHarnessClasspath') {
+    dependsOn testClasses
+    doLast {
+        layout.buildDirectory.file('pipeline-harness-classpath.txt').get().asFile.text = sourceSets.test.runtimeClasspath.asPath
+    }
+}
