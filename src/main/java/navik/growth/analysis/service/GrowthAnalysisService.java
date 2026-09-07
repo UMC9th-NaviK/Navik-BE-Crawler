@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import navik.growth.analysis.dto.AnalysisRequest.GrowthAnalysisRequest;
 import navik.growth.analysis.dto.AnalysisResponse;
+import navik.growth.analysis.dto.AnalysisDraft;
 import navik.growth.analysis.service.parser.ResponseParser;
 import navik.growth.analysis.service.prompt.PromptBuilder;
 import navik.growth.analysis.service.util.ContentTypeHelper;
@@ -41,6 +42,7 @@ public class GrowthAnalysisService {
 	private final ContentTypeHelper contentTypeHelper;
 	private final PromptBuilder promptBuilder;
 	private final ResponseParser responseParser;
+	private final GrowthEmbeddingService embeddingService;
 
 	/**
 	 * 성장 기록 분석 수행
@@ -48,7 +50,11 @@ public class GrowthAnalysisService {
 	 * @param request 분석 요청 (userId, jobId, levelValue, context)
 	 * @return 분석 결과 (title, content, 10개 kpiDeltas)
 	 */
-	public AnalysisResponse.GrowthAnalysisResponse analyze(GrowthAnalysisRequest request) {
+    public AnalysisResponse.GrowthAnalysisResponse analyze(GrowthAnalysisRequest request) {
+        return embeddingService.embed(analyzeDraft(request), null, ignored -> {});
+    }
+
+    public AnalysisDraft analyzeDraft(GrowthAnalysisRequest request) {
 		// 1. 전략 선택: JobId에 맞는 평가 페르소나(시스템 프롬프트) 로드
 		String systemPrompt = personaPromptLoader.load(request.jobId());
 
@@ -73,7 +79,7 @@ public class GrowthAnalysisService {
 			.content();
 
 		// 4. 결과 매핑: JSON → GrowthAnalysisResponse
-		AnalysisResponse.GrowthAnalysisResponse response = responseParser.parseResponse(responseContent);
+		AnalysisDraft response = responseParser.parseResponse(responseContent);
 
 		log.info("성장 기록 분석 완료 - userId: {}, jobId: {}, title: {}, kpiDeltas: {}개",
 			request.userId(), request.jobId(), response.title(), response.kpis().size());

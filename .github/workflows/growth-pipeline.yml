@@ -1,0 +1,42 @@
+name: Growth pipeline verification
+on:
+  pull_request:
+    branches: [develop]
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pipeline_test
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U pipeline_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PIPELINE_TEST_JDBC_URL: jdbc:postgresql://127.0.0.1:5432/postgres
+      PIPELINE_TEST_REDIS_PORT: '6379'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: chmod +x gradlew
+      - run: ./gradlew test --tests 'navik.growth.pipeline.*' --tests 'navik.pipeline.*' --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: growth-pipeline-test-results
+          path: |
+            build/test-results/test
+            build/reports/tests/test

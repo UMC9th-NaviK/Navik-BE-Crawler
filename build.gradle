@@ -48,6 +48,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    implementation 'org.springframework:spring-jdbc'
+    implementation 'com.zaxxer:HikariCP'
+    runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'com.h2database:h2'
+
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
@@ -81,4 +86,12 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Test-only entry points are launched as isolated JVMs by the E2E experiment runner.
+tasks.register('pipelineHarnessClasspath') {
+    dependsOn testClasses
+    doLast {
+        layout.buildDirectory.file('pipeline-harness-classpath.txt').get().asFile.text = sourceSets.test.runtimeClasspath.asPath
+    }
 }
